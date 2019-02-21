@@ -1,0 +1,17 @@
+{
+  "name": "drupal/bigcommerce",
+  "type": "drupal-module",
+  "description": "Integrates BigCommerce with Drupal",
+  "keywords": ["Drupal", "BigCommerce","Commerce"],
+  "license": "GPL-2.0-or-later",
+  "homepage": "https://www.drupal.org/project/bigcommerce",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/bigcommerce",
+    "source": "http://cgit.drupalcode.org/bigcommerce"
+  },
+  "require": {
+    "bigcommerce/api": "^3.2",
+    "drupal/commerce": "^2.8"
+  }
+}
