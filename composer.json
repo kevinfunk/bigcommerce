@@ -12,6 +12,6 @@
   },
   "require": {
     "bigcommerce/api": "^3.2",
-    "drupal/commerce": "^2.8"
+    "drupal/commerce": "^2.12"
   }
 }

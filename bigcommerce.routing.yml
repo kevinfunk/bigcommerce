@@ -1,0 +1,15 @@
+bigcommerce.configuration:
+  path: '/admin/commerce/config/bigcommerce'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'BigCommerce Configuration'
+  requirements:
+    _permission: 'access bigcommerce administration pages'
+
+bigcommerce.settings:
+  path: '/admin/commerce/config/bigcommerce/settings'
+  defaults:
+    _form: '\Drupal\bigcommerce\Form\SettingsForm'
+    _title: 'BigCommerce Settings'
+  requirements:
+    _permission: 'access bigcommerce administration pages'

@@ -1,0 +1,13 @@
+bigcommerce.settings:
+  type: config_object
+  label: 'BigCommerce config settings'
+  mapping:
+    store_hash:
+      type: string
+      label: 'BigCommerce store hash'
+    client_id:
+      type: string
+      label: 'BigCommerce API Client ID'
+    access_token:
+      type: string
+      label: 'BigCommerce API Access Token'
