@@ -38,20 +38,25 @@ class AdminTest extends WebDriverTestBase {
     $this->drupalLogin($this->drupalCreateUser(['access bigcommerce administration pages']));
     $this->drupalGet('admin/commerce/config/bigcommerce');
     $page->clickLink('BigCommerce Settings');
-    $page->fillField('store_hash', 'a hash value');
-    $page->fillField('client_id', 'a client id');
-    $page->fillField('access_token', 'an access token');
-    $this->htmlOutput();
+
+    // These are not actual keys, but they match the same length and format.
+    $page->fillField('store_hash', 'qtr7v94hi');
+    $page->fillField('client_id', 'nqyp6fpkwp36z6u25epgsm2qlsishgt');
+    $page->fillField('access_token', 'tk9trfgscj16mirm89vxredsmfgfhjp');
+    $page->fillField('client_secret', '8mo1qu0rlhq8ib009xha71amyg6k9dl');
+
     $page->findButton('Save configuration')->click();
-    $this->htmlOutput();
+
     $assert->pageTextContains('The configuration options have been saved.');
     $config = $this->config('bigcommerce.settings');
-    $this->assertEquals('a hash value', $config->get('store_hash'));
-    $this->assertEquals('a client id', $config->get('client_id'));
-    $this->assertEquals('an access token', $config->get('access_token'));
-    $this->assertSession()->fieldValueEquals('store_hash', 'a hash value');
-    $this->assertSession()->fieldValueEquals('client_id', 'a client id');
-    $this->assertSession()->fieldValueEquals('access_token', 'an access token');
+    $this->assertEquals('qtr7v94hi', $config->get('store_hash'));
+    $this->assertEquals('nqyp6fpkwp36z6u25epgsm2qlsishgt', $config->get('client_id'));
+    $this->assertEquals('tk9trfgscj16mirm89vxredsmfgfhjp', $config->get('access_token'));
+    $this->assertEquals('8mo1qu0rlhq8ib009xha71amyg6k9dl', $config->get('client_secret'));
+    $this->assertSession()->fieldValueEquals('store_hash', 'qtr7v94hi');
+    $this->assertSession()->fieldValueEquals('client_id', 'nqyp6fpkwp36z6u25epgsm2qlsishgt');
+    $this->assertSession()->fieldValueEquals('access_token', 'tk9trfgscj16mirm89vxredsmfgfhjp');
+    $this->assertSession()->fieldValueEquals('client_secret', '8mo1qu0rlhq8ib009xha71amyg6k9dl');
   }
 
 }

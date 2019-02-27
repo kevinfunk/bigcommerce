@@ -11,3 +11,6 @@ bigcommerce.settings:
     access_token:
       type: string
       label: 'BigCommerce API Access Token'
+    client_secret:
+      type: string
+      label: 'BigCommerce API Client Secret'

@@ -60,6 +60,13 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('access_token'),
     ];
 
+    $form['api_settings']['client_secret'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Client Secret'),
+      '#description' => $this->t('The Client Secret from BigCommerce.'),
+      '#default_value' => $config->get('client_secret'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -72,6 +79,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('store_hash', $form_state->getValue('store_hash'))
       ->set('client_id', $form_state->getValue('client_id'))
       ->set('access_token', $form_state->getValue('access_token'))
+      ->set('client_secret', $form_state->getValue('client_secret'))
       /* Need to verify if form values and settings are correct and reflect the nature of how settings will be handled before any save functionality is done. */
       ->save();
 
