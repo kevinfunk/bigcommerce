@@ -11,7 +11,7 @@
     "source": "http://cgit.drupalcode.org/bigcommerce"
   },
   "require": {
-    "bigcommerce/api": "^3.2",
+    "acromedia/bigcommerce-api-php-v3": "^1.7",
     "drupal/commerce": "^2.12"
   }
 }
