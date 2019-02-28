@@ -1,0 +1,7 @@
+services:
+  bigcommerce.client_factory:
+    class: Drupal\bigcommerce\ClientFactory
+    arguments: ['@config.factory']
+  bigcommerce.catalog:
+    class: \BigCommerce\Api\v3\Api\CatalogApi
+    factory: bigcommerce.client_factory:getCatalog

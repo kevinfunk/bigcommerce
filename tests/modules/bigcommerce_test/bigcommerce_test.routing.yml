@@ -1,0 +1,6 @@
+bigcommerce_test.stub:
+  path: '/bigcommerce_stub/{folder}/{client}/{command}'
+  defaults:
+    _controller: '\Drupal\bigcommerce_test\StubController::get'
+  requirements:
+    _access: 'TRUE'

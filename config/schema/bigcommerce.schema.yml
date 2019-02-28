@@ -2,15 +2,22 @@ bigcommerce.settings:
   type: config_object
   label: 'BigCommerce config settings'
   mapping:
-    store_hash:
-      type: string
-      label: 'BigCommerce store hash'
-    client_id:
-      type: string
-      label: 'BigCommerce API Client ID'
-    access_token:
-      type: string
-      label: 'BigCommerce API Access Token'
-    client_secret:
-      type: string
-      label: 'BigCommerce API Client Secret'
+    api:
+      type: mapping
+      label: 'BigCommerce API settings'
+      mapping:
+        path:
+          type: uri
+          label: 'BigCommerce API Path'
+        access_token:
+          type: string
+          label: 'BigCommerce API Access Token'
+        client_id:
+          type: string
+          label: 'BigCommerce API Client ID'
+        client_secret:
+          type: string
+          label: 'BigCommerce API Client Secret'
+        timeout:
+          type: integer
+          label: 'BigCommerce API cURL timeout'

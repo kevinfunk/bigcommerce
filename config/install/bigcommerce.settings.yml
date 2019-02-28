@@ -1,0 +1,6 @@
+api:
+  path: ''
+  access_token: ''
+  client_id: ''
+  client_secret: ''
+  timeout: 15
