@@ -5,3 +5,8 @@ services:
   bigcommerce.catalog:
     class: \BigCommerce\Api\v3\Api\CatalogApi
     factory: bigcommerce.client_factory:getCatalog
+  bigcommerce.cart_subscriber:
+    class: Drupal\bigcommerce\EventSubscriber\CartEventSubscriber
+    arguments: ['@config.factory']
+    tags:
+      - { name: event_subscriber }
