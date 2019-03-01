@@ -2,8 +2,12 @@
 
 namespace Drupal\bigcommerce\Form;
 
-use BigCommerce\Api\v3\Api\CatalogApi;
 use BigCommerce\Api\v3\ApiClient;
+use BigCommerce\Api\v3\Api\CatalogApi;
+use BigCommerce\Api\v3\Api\ChannelsApi;
+use BigCommerce\Api\v3\Api\SitesApi;
+use BigCommerce\Api\v3\Model\CreateChannelRequest;
+use BigCommerce\Api\v3\Model\SiteCreateRequest;
 use Drupal\bigcommerce\ClientFactory;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -89,6 +93,67 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('api.client_secret'),
     ];
 
+    $form['channel'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Channel Settings'),
+      '#description' => $this->t('These settings are generated automatically to link your site with BigCommerce'),
+      '#open' => TRUE,
+    ];
+
+    $form['channel']['message'] = [
+      '#type' => 'container',
+      '#access' => FALSE,
+      '#wrapper_attributes' => [
+        'class' => ['messages', 'messages--status'],
+      ],
+    ];
+
+    $channel_id = $config->get('channel.id');
+    $site_id = $config->get('channel.site_id');
+    if (!$channel_id) {
+      $form['channel']['no_channel'] = [
+        '#markup' => $this->t('No channel is currently configured, once you provide valid
+         API credentials this should configure automatically'),
+      ];
+    }
+    else {
+      $form['channel']['channel_id'] = [
+        '#type' => 'item',
+        '#title' => $this->t('Channel ID'),
+        '#description' => $this->t('Channel ID from BigCommerce, used to identify 3rd part sales channels like Drupal or Amazon.'),
+        '#markup' => $channel_id,
+      ];
+
+      $form['channel']['channel_name'] = [
+        '#type' => 'item',
+        '#title' => $this->t('Channel Name'),
+        '#description' => $this->t('Channel Name from BigCommerce, user friendly tag used to identify 3rd part sales channels like Drupal or Amazon.'),
+        '#markup' => $config->get('channel.name'),
+      ];
+    }
+
+    if (!$site_id) {
+      $form['channel']['no_site'] = [
+        '#markup' => $this->t('No BigCommerce site is currently configured, once you provide valid
+         API credentials this should configure automatically'),
+      ];
+    }
+    else {
+      $form['channel']['site_id'] = [
+        '#type' => 'item',
+        '#title' => $this->t('Site ID'),
+        '#description' => $this->t('Site ID for BigCommerce, always attached to a channel and links to a specific URL.'),
+        '#markup' => $site_id,
+      ];
+
+      $form['channel']['site_url'] = [
+        '#type' => 'item',
+        '#title' => $this->t('Site URL'),
+        '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
+        '#markup' => $config->get('channel.site_url'),
+      ];
+    }
+
     // Test the connection if we have some details. This is not done in
     // validation so that this configuration page acts as a connection status
     // page too.
@@ -98,6 +163,25 @@ class SettingsForm extends ConfigFormBase {
       if ($failed_message) {
         $form['connection_status']['message']['#markup'] = $failed_message;
         $form['connection_status']['message']['#wrapper_attributes']['class'] = ['messages', 'messages--error'];
+      }
+      else {
+        if (!$config->get('channel.id')) {
+          $failed_message = $this->setupChannel($config->get('api'));
+          $form['channel']['#access'] = TRUE;
+          if ($failed_message) {
+            $form['channel']['message']['channel']['#markup'] = $failed_message;
+            $form['channel']['message']['channel']['#wrapper_attributes']['class'] = ['messages', 'messages--error'];
+          }
+        }
+
+        if ($config->get('channel.id') && !$config->get('channel.site_id')) {
+          $failed_message = $this->setupSite($config->get('api'));
+          $form['channel']['#access'] = TRUE;
+          if ($failed_message) {
+            $form['channel']['message']['site']['#markup'] = $failed_message;
+            $form['channel']['message']['site']['#wrapper_attributes']['class'] = ['messages', 'messages--error'];
+          }
+        }
       }
     }
 
@@ -137,6 +221,93 @@ class SettingsForm extends ConfigFormBase {
     catch (\Exception $e) {
       return $this->t(
         'There was an error connecting to the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
+        [
+          ':status_url' => 'http://status.bigcommerce.com/',
+          ':contact_url' => 'https://support.bigcommerce.com/contact',
+          '%message' => $e->getMessage(),
+        ]
+      );
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Setup a BigCommerce channel.
+   *
+   * @param array $settings
+   *   An array based on bigcommerce.settings:api.
+   *
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup|null
+   *   Returns a TranslatableMarkup with the connection error or NULL if there
+   *   is no error.
+   */
+  protected function setupChannel(array $settings) {
+    try {
+      $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
+      $channel_api = new ChannelsApi($base_client);
+
+      $create_channel_request = new CreateChannelRequest();
+      $create_channel_request->setType(CreateChannelRequest::TYPE_STOREFRONT);
+      // There currently isn't a Drupal platform listing, use wordpress for now.
+      // This will also require an update of the SDK.
+      $create_channel_request->setPlatform(CreateChannelRequest::PLATFORM_WORDPRESS);
+      $create_channel_request->setName($this->configFactory->getEditable('commerce_store.settings')->get('default_store'));
+
+      $response = $channel_api->createChannel($create_channel_request);
+      $channel = $response->getData();
+
+      $this->configFactory()->getEditable('bigcommerce.settings')
+        ->set('channel.id', $channel->getId())
+        ->set('channel.name', $channel->getName())
+        ->save();
+    }
+    catch (\Exception $e) {
+      return $this->t(
+        'There was an error setting up a channel via the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
+        [
+          ':status_url' => 'http://status.bigcommerce.com/',
+          ':contact_url' => 'https://support.bigcommerce.com/contact',
+          '%message' => $e->getMessage(),
+        ]
+      );
+    }
+
+    return NULL;
+  }
+
+  /**
+   * Setup a BigCommerce site.
+   *
+   * @param array $settings
+   *   An array based on bigcommerce.settings:api.
+   *
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup|null
+   *   Returns a TranslatableMarkup with the connection error or NULL if there
+   *   is no error.
+   */
+  protected function setupSite(array $settings) {
+    try {
+      $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
+      $sites_api = new SitesApi($base_client);
+
+      $site_create_request = new SiteCreateRequest();
+      $config = $this->configFactory()->getEditable('bigcommerce.settings');
+      $site_create_request->setChannelId($config->get('channel.id'));
+      $site_create_request->setUrl(\Drupal::urlGenerator()->generateFromRoute('<front>', [], ['absolute' => TRUE]));
+
+      // The API lists both passing the channel id and adding it as a parameter.
+      $response = $sites_api->postChannelSite($config->get('channel.id'), $site_create_request);
+      $site = $response->getData();
+
+      $this->configFactory()->getEditable('bigcommerce.settings')
+        ->set('channel.site_id', $site->getId())
+        ->set('channel.site_url', $site->getUrl())
+        ->save();
+    }
+    catch (\Exception $e) {
+      return $this->t(
+        'There was an error setting up a site via the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
         [
           ':status_url' => 'http://status.bigcommerce.com/',
           ':contact_url' => 'https://support.bigcommerce.com/contact',

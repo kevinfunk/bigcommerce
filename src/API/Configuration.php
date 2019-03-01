@@ -4,19 +4,28 @@ namespace Drupal\bigcommerce\API;
 
 use BigCommerce\Api\v3\Configuration as BigCommerceConfiguration;
 
+/**
+ * Extends the BigCommerce configuration class to store client ID and secret.
+ */
 class Configuration extends BigCommerceConfiguration {
   protected $clientId;
   protected $clientSecret;
 
   /**
+   * Gets the BigCommerce API client id, used for API calls.
+   *
    * @return string
+   *   BigCommerce API client id.
    */
   public function getClientId() {
     return $this->clientId;
   }
 
   /**
+   * Sets the BigCommerce API client id, used for API calls.
+   *
    * @param string $clientId
+   *   BigCommerce API Client ID, provided in BigCommerce admin section.
    *
    * @return static
    */
@@ -26,14 +35,20 @@ class Configuration extends BigCommerceConfiguration {
   }
 
   /**
+   * Gets the BigCommerce API client secret, used for App calls.
+   *
    * @return string
+   *   BigCommerce API client secret.
    */
   public function getClientSecret() {
     return $this->clientSecret;
   }
 
   /**
+   * Sets the BigCommerce API client secret, used for App calls.
+   *
    * @param string $clientSecret
+   *   BigCommerce API Client Secret, provided in BigCommerce admin section.
    *
    * @return static
    */
