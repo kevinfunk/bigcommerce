@@ -3,7 +3,10 @@
 namespace Drupal\bigcommerce\EventSubscriber;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Drupal\commerce_cart\Event\CartEntityDeleteEvent;
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
+use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
+use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\Core\Config\ConfigFactoryInterface;
 
@@ -51,10 +54,10 @@ class CartEventSubscriber implements EventSubscriberInterface {
   /**
    * Delete BigCommerce cart.
    *
-   * @param \Drupal\commerce_cart\Event\CartEntityAddEvent $event
+   * @param \Drupal\commerce_cart\Event\CartEntityDeleteEvent $event
    *   The add to cart event.
    */
-  public function bigCommerceCartDelete(CartEntityAddEvent $event) {
+  public function bigCommerceCartDelete(CartEntityDeleteEvent $event) {
     try {
       $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
       $cart_api = new CartApi($base_client);
@@ -87,6 +90,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
 
       $request_data = new CartRequestData();
+      $request_data->setChannelId($this->config->get('channel.id'));
       $request_data->setLineItems([
         new LineItemRequestData([
           'quantity' => $order_item->getQuantity(),
@@ -115,6 +119,8 @@ class CartEventSubscriber implements EventSubscriberInterface {
         }
       }
 
+      dpm($bc_cart);
+
       $bc_line_items = $bc_cart->getLineItems();
       $bc_line_items = array_merge($bc_line_items->getPhysicalItems(), $bc_line_items->getDigitalItems(), $bc_line_items->getGiftCertificates());
       foreach ($bc_line_items as $bc_line_item) {
@@ -132,10 +138,10 @@ class CartEventSubscriber implements EventSubscriberInterface {
   /**
    * Update an item in BigCommerce cart via item_id.
    *
-   * @param \Drupal\commerce_cart\Event\CartEntityAddEvent $event
+   * @param \Drupal\commerce_cart\Event\CartOrderItemUpdateEvent $event
    *   The add to cart event.
    */
-  public function bigCommerceCartUpdate(CartEntityAddEvent $event) {
+  public function bigCommerceCartUpdate(CartOrderItemUpdateEvent $event) {
     try {
       $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
       $cart_api = new CartApi($base_client);
@@ -164,10 +170,10 @@ class CartEventSubscriber implements EventSubscriberInterface {
   /**
    * Remove an item from BigCommerce cart via item_id.
    *
-   * @param \Drupal\commerce_cart\Event\CartEntityAddEvent $event
+   * @param \Drupal\commerce_cart\Event\CartOrderItemRemoveEvent $event
    *   The add to cart event.
    */
-  public function bigCommerceCartRemove(CartEntityAddEvent $event) {
+  public function bigCommerceCartRemove(CartOrderItemRemoveEvent $event) {
     try {
       $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
       $cart_api = new CartApi($base_client);
