@@ -108,52 +108,6 @@ class SettingsForm extends ConfigFormBase {
       ],
     ];
 
-    $channel_id = $config->get('channel.id');
-    $site_id = $config->get('channel.site_id');
-    if (!$channel_id) {
-      $form['channel']['no_channel'] = [
-        '#markup' => $this->t('No channel is currently configured, once you provide valid
-         API credentials this should configure automatically'),
-      ];
-    }
-    else {
-      $form['channel']['channel_id'] = [
-        '#type' => 'item',
-        '#title' => $this->t('Channel ID'),
-        '#description' => $this->t('Channel ID from BigCommerce, used to identify 3rd part sales channels like Drupal or Amazon.'),
-        '#markup' => $channel_id,
-      ];
-
-      $form['channel']['channel_name'] = [
-        '#type' => 'item',
-        '#title' => $this->t('Channel Name'),
-        '#description' => $this->t('Channel Name from BigCommerce, user friendly tag used to identify 3rd part sales channels like Drupal or Amazon.'),
-        '#markup' => $config->get('channel.name'),
-      ];
-    }
-
-    if (!$site_id) {
-      $form['channel']['no_site'] = [
-        '#markup' => $this->t('No BigCommerce site is currently configured, once you provide valid
-         API credentials this should configure automatically'),
-      ];
-    }
-    else {
-      $form['channel']['site_id'] = [
-        '#type' => 'item',
-        '#title' => $this->t('Site ID'),
-        '#description' => $this->t('Site ID for BigCommerce, always attached to a channel and links to a specific URL.'),
-        '#markup' => $site_id,
-      ];
-
-      $form['channel']['site_url'] = [
-        '#type' => 'item',
-        '#title' => $this->t('Site URL'),
-        '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
-        '#markup' => $config->get('channel.site_url'),
-      ];
-    }
-
     // Test the connection if we have some details. This is not done in
     // validation so that this configuration page acts as a connection status
     // page too.
@@ -167,23 +121,74 @@ class SettingsForm extends ConfigFormBase {
       else {
         if (!$config->get('channel.id')) {
           $failed_message = $this->setupChannel($config->get('api'));
-          $form['channel']['#access'] = TRUE;
           if ($failed_message) {
-            $form['channel']['message']['channel']['#markup'] = $failed_message;
-            $form['channel']['message']['channel']['#wrapper_attributes']['class'] = ['messages', 'messages--error'];
+            $form['channel']['message']['#access'] = TRUE;
+            $form['channel']['message']['channel'] = [
+              '#type' => 'item',
+              '#markup' => $failed_message,
+              '#wrapper_attributes' => [
+                'class' => ['messages', 'messages--error'],
+              ],
+            ];
           }
         }
 
         if ($config->get('channel.id') && !$config->get('channel.site_id')) {
           $failed_message = $this->setupSite($config->get('api'));
-          $form['channel']['#access'] = TRUE;
           if ($failed_message) {
-            $form['channel']['message']['site']['#markup'] = $failed_message;
-            $form['channel']['message']['site']['#wrapper_attributes']['class'] = ['messages', 'messages--error'];
+            $form['channel']['message']['#access'] = TRUE;
+            $form['channel']['message']['site'] = [
+              '#type' => 'item',
+              '#markup' => $failed_message,
+              '#wrapper_attributes' => [
+                'class' => ['messages', 'messages--error'],
+              ],
+            ];
           }
         }
       }
     }
+
+    $has_channel_id = mb_strlen($config->get('channel.id')) > 0;
+    $has_site_id = mb_strlen($config->get('channel.site_id')) > 0;
+    $form['channel']['no_channel'] = [
+      '#markup' => $this->t('No channel is currently configured, once you provide valid API credentials this should configure automatically'),
+      '#access' => !$has_channel_id,
+    ];
+    $form['channel']['channel_id'] = [
+      '#type' => 'item',
+      '#title' => $this->t('Channel ID'),
+      '#description' => $this->t('Channel ID from BigCommerce, used to identify 3rd part sales channels like Drupal or Amazon.'),
+      '#markup' => $config->get('channel.id'),
+      '#access' => $has_channel_id,
+    ];
+
+    $form['channel']['channel_name'] = [
+      '#type' => 'item',
+      '#title' => $this->t('Channel Name'),
+      '#description' => $this->t('Channel Name from BigCommerce, user friendly tag used to identify 3rd party sales channels like Drupal or Amazon.'),
+      '#markup' => $config->get('channel.name'),
+      '#access' => $has_channel_id,
+    ];
+
+    $form['channel']['no_site'] = [
+      '#markup' => $this->t('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically'),
+      '#access' => !$has_site_id,
+    ];
+    $form['channel']['site_id'] = [
+      '#type' => 'item',
+      '#title' => $this->t('Site ID'),
+      '#description' => $this->t('Site ID for BigCommerce, always attached to a channel and links to a specific URL.'),
+      '#markup' => $config->get('channel.site_id'),
+      '#access' => $has_site_id,
+    ];
+    $form['channel']['site_url'] = [
+      '#type' => 'item',
+      '#title' => $this->t('Site URL'),
+      '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
+      '#markup' => $config->get('channel.site_url'),
+      '#access' => $has_site_id,
+    ];
 
     return parent::buildForm($form, $form_state);
   }
@@ -216,7 +221,7 @@ class SettingsForm extends ConfigFormBase {
     try {
       $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
       $catalog_client = new CatalogApi($base_client);
-      $response = $catalog_client->catalogSummaryGet();
+      $catalog_client->catalogSummaryGet();
     }
     catch (\Exception $e) {
       return $this->t(
