@@ -14,13 +14,17 @@ class StubController extends ControllerBase {
 
   /**
    * @param $folder
-   * @param $client
-   * @param $command
+   * @param $part1
+   * @param $part2
+   * @param $part3
+   * @param $part4
+   * @param $part5
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    */
-  public function get($folder, $client, $command) {
-    $filename = realpath(__DIR__ . '/..') . '/stubs/' . $folder . '/' . $client . '_' . $command . '.json';
+  public function get($folder, $part1, $part2, $part3, $part4, $part5) {
+    $parts = array_filter([$part1, $part2, $part3, $part4, $part5]);
+    $filename = realpath(__DIR__ . '/..') . '/stubs/' . $folder . '/' . implode('_', $parts) . '.json';
     $json = @file_get_contents($filename);
     if ($json) {
       $data = json_decode($json, TRUE);

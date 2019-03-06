@@ -6,6 +6,7 @@ use BigCommerce\Api\v3\ApiClient;
 use BigCommerce\Api\v3\Api\CatalogApi;
 use BigCommerce\Api\v3\Api\ChannelsApi;
 use BigCommerce\Api\v3\Api\SitesApi;
+use BigCommerce\Api\v3\ApiException;
 use BigCommerce\Api\v3\Model\CreateChannelRequest;
 use BigCommerce\Api\v3\Model\SiteCreateRequest;
 use Drupal\bigcommerce\ClientFactory;
@@ -152,7 +153,7 @@ class SettingsForm extends ConfigFormBase {
     $has_channel_id = mb_strlen($config->get('channel.id')) > 0;
     $has_site_id = mb_strlen($config->get('channel.site_id')) > 0;
     $form['channel']['no_channel'] = [
-      '#markup' => $this->t('No channel is currently configured, once you provide valid API credentials this should configure automatically'),
+      '#markup' => $this->t('No channel is currently configured, once you provide valid API credentials this should configure automatically.'),
       '#access' => !$has_channel_id,
     ];
     $form['channel']['channel_id'] = [
@@ -172,7 +173,7 @@ class SettingsForm extends ConfigFormBase {
     ];
 
     $form['channel']['no_site'] = [
-      '#markup' => $this->t('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically'),
+      '#markup' => $this->t('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically.'),
       '#access' => !$has_site_id,
     ];
     $form['channel']['site_id'] = [
@@ -262,7 +263,7 @@ class SettingsForm extends ConfigFormBase {
       $response = $channel_api->createChannel($create_channel_request);
       $channel = $response->getData();
 
-      $this->configFactory()->getEditable('bigcommerce.settings')
+      $this->config('bigcommerce.settings')
         ->set('channel.id', $channel->getId())
         ->set('channel.name', $channel->getName())
         ->save();
@@ -296,16 +297,27 @@ class SettingsForm extends ConfigFormBase {
       $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
       $sites_api = new SitesApi($base_client);
 
-      $site_create_request = new SiteCreateRequest();
-      $config = $this->configFactory()->getEditable('bigcommerce.settings');
-      $site_create_request->setChannelId($config->get('channel.id'));
-      $site_create_request->setUrl(\Drupal::urlGenerator()->generateFromRoute('<front>', [], ['absolute' => TRUE]));
+      $config = $this->config('bigcommerce.settings');
 
-      // The API lists both passing the channel id and adding it as a parameter.
-      $response = $sites_api->postChannelSite($config->get('channel.id'), $site_create_request);
-      $site = $response->getData();
+      // See if a site already exists.
+      try {
+        $response = $sites_api->getChannelSite($config->get('channel.id'));
+        $site = $response->getData();
+      } catch (ApiException $e) {
+      }
 
-      $this->configFactory()->getEditable('bigcommerce.settings')
+      // Create a site if we need to.
+      if (empty($site) || empty($site->getId())) {
+        $site_create_request = new SiteCreateRequest();
+        $site_create_request->setChannelId($config->get('channel.id'));
+        $site_create_request->setUrl(\Drupal::urlGenerator()->generateFromRoute('<front>', [], ['absolute' => TRUE]));
+
+        // The API lists both passing the channel id and adding it as a parameter.
+        $response = $sites_api->postChannelSite($config->get('channel.id'), $site_create_request);
+        $site = $response->getData();
+      }
+
+      $config
         ->set('channel.site_id', $site->getId())
         ->set('channel.site_url', $site->getUrl())
         ->save();

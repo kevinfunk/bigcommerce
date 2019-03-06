@@ -48,12 +48,24 @@ class AdminTest extends WebDriverTestBase {
     $page->fillField('api_settings[client_id]', 'a client ID');
     $page->fillField('api_settings[client_secret]', 'a client secret');
 
+    $assert->pageTextContains('No channel is currently configured, once you provide valid API credentials this should configure automatically.');
+    $assert->pageTextContains('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically.');
+    $assert->pageTextNotContains('Channel ID');
+    $assert->pageTextNotContains('Site ID');
+
     $this->htmlOutput();
     $page->findButton('Save configuration')->click();
     $this->htmlOutput();
     $assert->pageTextContains('The configuration options have been saved.');
     $assert->pageTextContains('Connection status');
     $assert->pageTextContains('Connected successfully.');
+
+    $assert->pageTextNotContains('No channel is currently configured, once you provide valid API credentials this should configure automatically.');
+    $assert->pageTextNotContains('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically.');
+    $assert->pageTextContains('Channel ID 14581');
+    $assert->pageTextContains('Channel Name Test Channel');
+    $assert->pageTextContains('Site ID 3');
+    $assert->pageTextContains('Site URL http://democommerce.test');
 
     $config = $this->config('bigcommerce.settings');
     $this->assertEquals([
