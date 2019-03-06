@@ -303,7 +303,9 @@ class SettingsForm extends ConfigFormBase {
       try {
         $response = $sites_api->getChannelSite($config->get('channel.id'));
         $site = $response->getData();
-      } catch (ApiException $e) {
+      }
+      catch (ApiException $e) {
+        // Fall through to try to create the site in BigCommerce.
       }
 
       // Create a site if we need to.

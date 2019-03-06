@@ -114,8 +114,6 @@ class CartEventSubscriber implements EventSubscriberInterface {
         }
       }
 
-      dpm($bc_cart);
-
       $bc_line_items = $bc_cart->getLineItems();
       $bc_line_items = array_merge($bc_line_items->getPhysicalItems(), $bc_line_items->getDigitalItems(), $bc_line_items->getGiftCertificates());
       foreach ($bc_line_items as $bc_line_item) {
