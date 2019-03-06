@@ -2,11 +2,14 @@ services:
   bigcommerce.client_factory:
     class: Drupal\bigcommerce\ClientFactory
     arguments: ['@config.factory']
+  bigcommerce.cart:
+    class: \BigCommerce\Api\v3\Api\CartApi
+    factory: bigcommerce.client_factory:getCart
   bigcommerce.catalog:
     class: \BigCommerce\Api\v3\Api\CatalogApi
     factory: bigcommerce.client_factory:getCatalog
   bigcommerce.cart_subscriber:
     class: Drupal\bigcommerce\EventSubscriber\CartEventSubscriber
-    arguments: ['@config.factory']
+    arguments: ['@bigcommerce.cart', '@config.factory']
     tags:
       - { name: event_subscriber }

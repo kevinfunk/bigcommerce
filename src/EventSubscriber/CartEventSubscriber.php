@@ -10,11 +10,9 @@ use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\Core\Config\ConfigFactoryInterface;
 
-use BigCommerce\Api\v3\ApiClient;
 use BigCommerce\Api\v3\Api\CartApi;
 use BigCommerce\Api\v3\Model\CartRequestData;
 use BigCommerce\Api\v3\Model\LineItemRequestData;
-use Drupal\bigcommerce\ClientFactory;
 
 /**
  * Event Subscriber to handle syncing the Commerce and BigCommerce carts.
@@ -31,10 +29,13 @@ class CartEventSubscriber implements EventSubscriberInterface {
   /**
    * Constructs a new CartEventSubscriber object.
    *
+   * @param \BigCommerce\Api\v3\Api\CartApi $cart_api
+   *   The cart API.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  public function __construct(CartApi $cart_api, ConfigFactoryInterface $config_factory) {
+    $this->cartApi = $cart_api;
     $this->config = $config_factory->get('bigcommerce.settings');
   }
 
@@ -59,14 +60,11 @@ class CartEventSubscriber implements EventSubscriberInterface {
    */
   public function bigCommerceCartDelete(CartEntityDeleteEvent $event) {
     try {
-      $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
-      $cart_api = new CartApi($base_client);
-
       $order = $event->getCart();
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
 
       if ($bc_cart_id) {
-        $cart_api->cartsCartIdDelete($bc_cart_id);
+        $this->cartApi->cartsCartIdDelete($bc_cart_id);
       }
     }
     catch (\Exception $e) {
@@ -82,9 +80,6 @@ class CartEventSubscriber implements EventSubscriberInterface {
    */
   public function bigCommerceAddToCart(CartEntityAddEvent $event) {
     try {
-      $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
-      $cart_api = new CartApi($base_client);
-
       $order_item = $event->getOrderItem();
       $order = $event->getCart();
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
@@ -105,7 +100,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
       // have a cart or not.
       $bc_cart = '';
       if (!$bc_cart_id) {
-        $cart_response = $cart_api->cartsPost($request_data);
+        $cart_response = $this->cartApi->cartsPost($request_data);
         if ($cart_response) {
           $bc_cart = $cart_response->getData();
         }
@@ -113,7 +108,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
         $order->setData('bigcommerce_cart_id', $bc_cart_id);
       }
       else {
-        $cart_response = $cart_api->cartsCartIdItemsPost($bc_cart_id, $request_data);
+        $cart_response = $this->cartApi->cartsCartIdItemsPost($bc_cart_id, $request_data);
         if ($cart_response) {
           $bc_cart = $cart_response->getData();
         }
@@ -143,9 +138,6 @@ class CartEventSubscriber implements EventSubscriberInterface {
    */
   public function bigCommerceCartUpdate(CartOrderItemUpdateEvent $event) {
     try {
-      $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
-      $cart_api = new CartApi($base_client);
-
       $order_item = $event->getOrderItem();
       $order = $event->getCart();
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
@@ -159,7 +151,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
       ]);
 
       if ($bc_cart_id) {
-        $cart_api->cartsCartIdItemsItemIdPut($bc_cart_id, $bc_item_id, $request_data);
+        $this->cartApi->cartsCartIdItemsItemIdPut($bc_cart_id, $bc_item_id, $request_data);
       }
     }
     catch (\Exception $e) {
@@ -175,16 +167,13 @@ class CartEventSubscriber implements EventSubscriberInterface {
    */
   public function bigCommerceCartRemove(CartOrderItemRemoveEvent $event) {
     try {
-      $base_client = new ApiClient(ClientFactory::createApiConfiguration($this->config->get('api')));
-      $cart_api = new CartApi($base_client);
-
       $order_item = $event->getOrderItem();
       $order = $event->getCart();
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
       $bc_item_id = $order_item->getData('bigcommerce_item_id');
 
       if ($bc_cart_id) {
-        $cart_api->cartsCartIdItemsItemIdDelete($bc_cart_id, $bc_item_id);
+        $this->cartApi->cartsCartIdItemsItemIdDelete($bc_cart_id, $bc_item_id);
       }
     }
     catch (\Exception $e) {

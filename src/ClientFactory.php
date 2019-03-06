@@ -2,6 +2,7 @@
 
 namespace Drupal\bigcommerce;
 
+use BigCommerce\Api\v3\Api\CartApi;
 use BigCommerce\Api\v3\Api\CatalogApi;
 use BigCommerce\Api\v3\ApiClient;
 use Drupal\bigcommerce\API\Configuration;
@@ -41,6 +42,16 @@ class ClientFactory {
    */
   public function __construct(ConfigFactoryInterface $config_factory) {
     $this->configFactory = $config_factory;
+  }
+
+  /**
+   * Gets a BigCommerce SDK cart object.
+   *
+   * @return \BigCommerce\Api\v3\Api\CartApi
+   *   BigCommerce API cart object.
+   */
+  public function getCart() {
+    return new CartApi($this->getBaseClient());
   }
 
   /**
