@@ -48,9 +48,7 @@ class AdminTest extends WebDriverTestBase {
     $page->fillField('api_settings[client_id]', 'a client ID');
     $page->fillField('api_settings[client_secret]', 'a client secret');
 
-    $assert->pageTextContains('No channel is currently configured, once you provide valid API credentials this should configure automatically.');
-    $assert->pageTextContains('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically.');
-    $assert->pageTextNotContains('Channel ID');
+    $assert->pageTextContains('No channel is currently configured, once you provide valid API credentials this can be configured.');
     $assert->pageTextNotContains('Site ID');
 
     $this->htmlOutput();
@@ -59,13 +57,8 @@ class AdminTest extends WebDriverTestBase {
     $assert->pageTextContains('The configuration options have been saved.');
     $assert->pageTextContains('Connection status');
     $assert->pageTextContains('Connected successfully.');
-
-    $assert->pageTextNotContains('No channel is currently configured, once you provide valid API credentials this should configure automatically.');
-    $assert->pageTextNotContains('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically.');
-    $assert->pageTextContains('Channel ID 14581');
-    $assert->pageTextContains('Channel Name Test Channel');
-    $assert->pageTextContains('Site ID 3');
-    $assert->pageTextContains('Site URL http://democommerce.test');
+    $assert->pageTextContains('No channel is currently configured, once you provide valid API credentials this can be configured.');
+    $assert->pageTextNotContains('Site ID');
 
     $config = $this->config('bigcommerce.settings');
     $this->assertEquals([
@@ -79,6 +72,29 @@ class AdminTest extends WebDriverTestBase {
     $assert->fieldValueEquals('api_settings[access_token]', 'an access token');
     $assert->fieldValueEquals('api_settings[client_id]', 'a client ID');
     $assert->fieldValueEquals('api_settings[client_secret]', 'a client secret');
+    $page->selectFieldOption('channel_select', "Test channel");
+    $this->htmlOutput();
+    $page->findButton('Save configuration')->click();
+    $this->htmlOutput();
+    $assert->pageTextNotContains('No channel is currently configured, once you provide valid API credentials this can be configured.');
+    $assert->pageTextContains('Site ID 3');
+    $assert->pageTextContains('Site URL http://my_commerce_site.com');
+    $this->refreshVariables();
+    $this->assertSame(14581, $this->config('bigcommerce.settings')->get('channel_id'));
+
+    // Change to a stub with multiple channels.
+    $page->fillField('api_settings[path]', Url::fromUri('base://bigcommerce_stub/multiple_channels/')->setAbsolute()->toString());
+    $page->findButton('Save configuration')->click();
+    $this->htmlOutput();
+    $assert->pageTextContains('Site ID 3');
+    $assert->pageTextContains('Site URL http://my_commerce_site.com');
+    $page->selectFieldOption('channel_select', "Another test channel");
+    $page->findButton('Save configuration')->click();
+    $this->htmlOutput();
+    $assert->pageTextContains('Site ID 4');
+    $assert->pageTextContains('Site URL http://test.my_commerce_site.com');
+    $this->refreshVariables();
+    $this->assertSame(14582, $this->config('bigcommerce.settings')->get('channel_id'));
 
     $page->fillField('api_settings[path]', Url::fromUri('base://bigcommerce_stub/connection_failed/')->setAbsolute()->toString());
     $page->findButton('Save configuration')->click();

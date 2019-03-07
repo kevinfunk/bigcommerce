@@ -4,19 +4,50 @@ namespace Drupal\bigcommerce\Form;
 
 use BigCommerce\Api\v3\ApiClient;
 use BigCommerce\Api\v3\Api\CatalogApi;
-use BigCommerce\Api\v3\Api\ChannelsApi;
-use BigCommerce\Api\v3\Api\SitesApi;
 use BigCommerce\Api\v3\ApiException;
+use BigCommerce\Api\v3\Model\Channel;
 use BigCommerce\Api\v3\Model\CreateChannelRequest;
+use BigCommerce\Api\v3\Model\Site;
 use BigCommerce\Api\v3\Model\SiteCreateRequest;
 use Drupal\bigcommerce\ClientFactory;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RequestContext;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Configure example settings for this site.
  */
 class SettingsForm extends ConfigFormBase {
+
+  /**
+   * @var \Drupal\Core\Routing\RequestContext
+   */
+  protected $requestContext;
+
+  /**
+   * SettingsForm constructor.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The factory for configuration objects.
+   * @param \Drupal\Core\Routing\RequestContext $request_context
+   *   The request context.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, RequestContext $request_context) {
+    parent::__construct($config_factory);
+    $this->requestContext = $request_context;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('router.request_context')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -97,16 +128,7 @@ class SettingsForm extends ConfigFormBase {
     $form['channel'] = [
       '#type' => 'details',
       '#title' => $this->t('Channel Settings'),
-      '#description' => $this->t('These settings are generated automatically to link your site with BigCommerce'),
       '#open' => TRUE,
-    ];
-
-    $form['channel']['message'] = [
-      '#type' => 'container',
-      '#access' => FALSE,
-      '#wrapper_attributes' => [
-        'class' => ['messages', 'messages--status'],
-      ],
     ];
 
     // Test the connection if we have some details. This is not done in
@@ -119,79 +141,93 @@ class SettingsForm extends ConfigFormBase {
         $form['connection_status']['message']['#markup'] = $failed_message;
         $form['connection_status']['message']['#wrapper_attributes']['class'] = ['messages', 'messages--error'];
       }
-      else {
-        if (!$config->get('channel.id')) {
-          $failed_message = $this->setupChannel($config->get('api'));
-          if ($failed_message) {
-            $form['channel']['message']['#access'] = TRUE;
-            $form['channel']['message']['channel'] = [
-              '#type' => 'item',
-              '#markup' => $failed_message,
-              '#wrapper_attributes' => [
-                'class' => ['messages', 'messages--error'],
-              ],
-            ];
-          }
-        }
-
-        if ($config->get('channel.id') && !$config->get('channel.site_id')) {
-          $failed_message = $this->setupSite($config->get('api'));
-          if ($failed_message) {
-            $form['channel']['message']['#access'] = TRUE;
-            $form['channel']['message']['site'] = [
-              '#type' => 'item',
-              '#markup' => $failed_message,
-              '#wrapper_attributes' => [
-                'class' => ['messages', 'messages--error'],
-              ],
-            ];
-          }
-        }
-      }
     }
 
-    $has_channel_id = mb_strlen($config->get('channel.id')) > 0;
-    $has_site_id = mb_strlen($config->get('channel.site_id')) > 0;
+    $has_channel_id = mb_strlen($config->get('channel_id')) > 0;
     $form['channel']['no_channel'] = [
-      '#markup' => $this->t('No channel is currently configured, once you provide valid API credentials this should configure automatically.'),
+      '#markup' => $this->t('No channel is currently configured, once you provide valid API credentials this can be configured.'),
       '#access' => !$has_channel_id,
     ];
-    $form['channel']['channel_id'] = [
-      '#type' => 'item',
-      '#title' => $this->t('Channel ID'),
-      '#description' => $this->t('Channel ID from BigCommerce, used to identify 3rd part sales channels like Drupal or Amazon.'),
-      '#markup' => $config->get('channel.id'),
-      '#access' => $has_channel_id,
+
+    $options = (bool) $config->get('api.path') ? $this->getChannels() : [];
+    $form['channel']['channel_select'] = [
+      '#type' => 'select',
+      '#options' => $options,
+      '#default_value' => $has_channel_id ? $config->get('channel_id') : NULL,
+      '#title' => $this->t('Select channel'),
+      '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
+      '#access' => $config->get('api.path') && !empty($options),
+      '#required' => TRUE,
     ];
 
-    $form['channel']['channel_name'] = [
-      '#type' => 'item',
-      '#title' => $this->t('Channel Name'),
+    $form['channel']['create_new_channel_name'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('New Channel Name'),
       '#description' => $this->t('Channel Name from BigCommerce, user friendly tag used to identify 3rd party sales channels like Drupal or Amazon.'),
-      '#markup' => $config->get('channel.name'),
-      '#access' => $has_channel_id,
+      '#access' => (bool) $config->get('api.path'),
+    ];
+    $form['channel']['create_new_channel_submit'] = [
+      '#type' => 'submit',
+      '#value' => t('Create new BigCommerce channel'),
+      '#submit' => ['::createNewChannel'],
+      '#access' => (bool) $config->get('api.path'),
     ];
 
-    $form['channel']['no_site'] = [
-      '#markup' => $this->t('No BigCommerce site is currently configured, once you provide valid API credentials this should configure automatically.'),
-      '#access' => !$has_site_id,
-    ];
+    $site = $has_channel_id ? $this->getSiteForChannel($config->get('channel_id')) : NULL;
+
     $form['channel']['site_id'] = [
       '#type' => 'item',
       '#title' => $this->t('Site ID'),
       '#description' => $this->t('Site ID for BigCommerce, always attached to a channel and links to a specific URL.'),
-      '#markup' => $config->get('channel.site_id'),
-      '#access' => $has_site_id,
+      '#markup' => $site ? $site->getId() : '',
+      '#access' => $has_channel_id && $site,
     ];
     $form['channel']['site_url'] = [
       '#type' => 'item',
       '#title' => $this->t('Site URL'),
       '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
-      '#markup' => $config->get('channel.site_url'),
-      '#access' => $has_site_id,
+      '#markup' => $site ? $site->getUrl() : '',
+      '#access' => $has_channel_id && $site,
+    ];
+    $form['channel']['update_site_url'] = [
+      '#type' => 'submit',
+      '#value' => t('Update BigCommerce Site URL'),
+      '#submit' => ['::updateSiteUrl'],
+      '#access' => $has_channel_id && $site,
+    ];
+    $form['channel']['create_site'] = [
+      '#type' => 'submit',
+      '#value' => t('Create BigCommerce Site'),
+      '#submit' => ['::setupSite'],
+      '#access' => $has_channel_id && !$site,
     ];
 
     return parent::buildForm($form, $form_state);
+  }
+
+  /**
+   * Lists all the available channels.
+   *
+   * @return string[]
+   *   List of channel names keyed by channel ID.
+   */
+  protected function getChannels() {
+    try {
+      $channels = (array) \Drupal::service('bigcommerce.channels')->listChannels()->getData();
+    }
+    catch (ApiException $e) {
+      $channels = [];
+    }
+    $channels = array_filter($channels, function (Channel $channel) {
+      return $channel->getPlatform() === CreateChannelRequest::PLATFORM_WORDPRESS;
+    });
+
+    $list = [];
+    foreach ($channels as $channel) {
+      $list[$channel->getId()] = $channel->getName();
+    }
+    natsort($list);
+    return $list;
   }
 
   /**
@@ -203,6 +239,7 @@ class SettingsForm extends ConfigFormBase {
       ->set('api.access_token', $form_state->getValue(['api_settings', 'access_token']))
       ->set('api.client_id', $form_state->getValue(['api_settings', 'client_id']))
       ->set('api.client_secret', $form_state->getValue(['api_settings', 'client_secret']))
+      ->set('channel_id', $form_state->getValue(['channel_select']))
       ->save();
 
     parent::submitForm($form, $form_state);
@@ -220,6 +257,8 @@ class SettingsForm extends ConfigFormBase {
    */
   protected function testConnection(array $settings) {
     try {
+      // Note this uses creates the CatalogAPI manually in order to provide a
+      // connection tester not dependent on configuration.
       $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
       $catalog_client = new CatalogApi($base_client);
       $catalog_client->catalogSummaryGet();
@@ -239,103 +278,139 @@ class SettingsForm extends ConfigFormBase {
   }
 
   /**
-   * Setup a BigCommerce channel.
+   * Creates a BigCommerce channel.
    *
-   * @param array $settings
-   *   An array based on bigcommerce.settings:api.
-   *
-   * @return \Drupal\Core\StringTranslation\TranslatableMarkup|null
-   *   Returns a TranslatableMarkup with the connection error or NULL if there
-   *   is no error.
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    */
-  protected function setupChannel(array $settings) {
+  public function createNewChannel(array &$form, FormStateInterface $form_state) {
+    $config = $this->config('bigcommerce.settings');
     try {
-      $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
-      $channel_api = new ChannelsApi($base_client);
+      /** @var \BigCommerce\Api\v3\Api\ChannelsApi $channel_api */
+      $channel_api = \Drupal::service('bigcommerce.channels');
 
       $create_channel_request = new CreateChannelRequest();
       $create_channel_request->setType(CreateChannelRequest::TYPE_STOREFRONT);
       // There currently isn't a Drupal platform listing, use wordpress for now.
       // This will also require an update of the SDK.
       $create_channel_request->setPlatform(CreateChannelRequest::PLATFORM_WORDPRESS);
-      $create_channel_request->setName($this->configFactory->getEditable('commerce_store.settings')->get('default_store'));
+      $create_channel_request->setName($form_state->getValue('create_new_channel_name'));
 
       $response = $channel_api->createChannel($create_channel_request);
       $channel = $response->getData();
 
       $this->config('bigcommerce.settings')
-        ->set('channel.id', $channel->getId())
-        ->set('channel.name', $channel->getName())
+        ->set('channel_id', $channel->getId())
         ->save();
+
+      $this->messenger()->addStatus('Created new BigCommerce channel %channel', ['%channel' => $channel->getName()]);
+      // Automatically create a site for the new channel.
+      $this->setupSite();
     }
     catch (\Exception $e) {
-      return $this->t(
+      $this->messenger()->addError($this->t(
         'There was an error setting up a channel via the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
         [
           ':status_url' => 'http://status.bigcommerce.com/',
           ':contact_url' => 'https://support.bigcommerce.com/contact',
           '%message' => $e->getMessage(),
         ]
-      );
+      ));
     }
-
-    return NULL;
   }
 
   /**
-   * Setup a BigCommerce site.
-   *
-   * @param array $settings
-   *   An array based on bigcommerce.settings:api.
-   *
-   * @return \Drupal\Core\StringTranslation\TranslatableMarkup|null
-   *   Returns a TranslatableMarkup with the connection error or NULL if there
-   *   is no error.
+   * Creates a BigCommerce site.
    */
-  protected function setupSite(array $settings) {
-    try {
-      $base_client = new ApiClient(ClientFactory::createApiConfiguration($settings));
-      $sites_api = new SitesApi($base_client);
+  public function setupSite() {
+    $config = $this->config('bigcommerce.settings');
 
-      $config = $this->config('bigcommerce.settings');
+    // See if a site already exists.
+    $site = $this->getSiteForChannel($config->get('channel_id'));
 
-      // See if a site already exists.
+    // Create a site if we need to.
+    if (empty($site) || empty($site->getId())) {
+      /** @var \BigCommerce\Api\v3\Api\SitesApi $sites_api */
+      $sites_api = \Drupal::service('bigcommerce.sites');
       try {
-        $response = $sites_api->getChannelSite($config->get('channel.id'));
-        $site = $response->getData();
-      }
-      catch (ApiException $e) {
-        // Fall through to try to create the site in BigCommerce.
-      }
-
-      // Create a site if we need to.
-      if (empty($site) || empty($site->getId())) {
         $site_create_request = new SiteCreateRequest();
-        $site_create_request->setChannelId($config->get('channel.id'));
-        $site_create_request->setUrl(\Drupal::urlGenerator()->generateFromRoute('<front>', [], ['absolute' => TRUE]));
+        $site_create_request->setChannelId($config->get('channel_id'));
+        $site_create_request->setUrl(rtrim($this->requestContext->getCompleteBaseUrl(), '/'));
 
         // The API lists both passing the channel id and adding it as a parameter.
-        $response = $sites_api->postChannelSite($config->get('channel.id'), $site_create_request);
-        $site = $response->getData();
+        $sites_api->postChannelSite($config->get('channel_id'), $site_create_request);
       }
-
-      $config
-        ->set('channel.site_id', $site->getId())
-        ->set('channel.site_url', $site->getUrl())
-        ->save();
+      catch (\Exception $e) {
+        $this->messenger()->addError($this->t(
+          'There was an error setting up a site via the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
+          [
+            ':status_url' => 'http://status.bigcommerce.com/',
+            ':contact_url' => 'https://support.bigcommerce.com/contact',
+            '%message' => $e->getMessage(),
+          ]
+        ));
+      }
     }
-    catch (\Exception $e) {
-      return $this->t(
-        'There was an error setting up a site via the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
-        [
-          ':status_url' => 'http://status.bigcommerce.com/',
-          ':contact_url' => 'https://support.bigcommerce.com/contact',
-          '%message' => $e->getMessage(),
-        ]
-      );
-    }
+  }
 
-    return NULL;
+  /**
+   * Updates a Site URL.
+   *
+   * @param array $form
+   *   The form array.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
+   */
+  public function updateSiteUrl(array &$form, FormStateInterface $form_state) {
+    $config = $this->config('bigcommerce.settings');
+    /** @var \BigCommerce\Api\v3\Api\SitesApi $sites_api */
+    $sites_api = \Drupal::service('bigcommerce.sites');
+
+    // See if a site already exists.
+    try {
+      $site_id = $this->getSiteForChannel($config->get('channel_id'))->getId();
+
+      $body = new Site([
+        'url' => rtrim($this->requestContext->getCompleteBaseUrl(), '/'),
+      ]);
+      $sites_api->putSite($site_id, $body);
+    }
+    catch (ApiException $e) {
+      $this->messenger()->addError($this->t('Failed to update site url due to error: %error', ['%error' => $e->getMessage()]));
+    }
+  }
+
+  /**
+   * Gets a BigCommerce Site object for the specified channel.
+   *
+   * @param $channel_id
+   *   The channel ID to get the site for.
+   * @param bool $throw_exception
+   *   (optional) Whether to throw an exception on error. Defaults to FALSE.
+   *
+   * @return \BigCommerce\Api\v3\Model\Site|null
+   *   The BigCommerce Site object.
+   *
+   * @throws \BigCommerce\Api\v3\ApiException
+   *   Exception thrown if $throw_exception is TRUE and there is problem
+   *   communicating with BigCommerce.
+   */
+  protected function getSiteForChannel($channel_id, $throw_exception = FALSE) {
+    $site = NULL;
+    /** @var \BigCommerce\Api\v3\Api\SitesApi $sites_api */
+    $sites_api = \Drupal::service('bigcommerce.sites');
+    try {
+      $response = $sites_api->getChannelSite($channel_id);
+      $site = $response->getData();
+    }
+    catch (ApiException $e) {
+      if ($throw_exception) {
+        throw $e;
+      }
+    }
+    return $site;
   }
 
 }

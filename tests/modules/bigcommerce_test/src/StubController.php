@@ -4,6 +4,7 @@ namespace Drupal\bigcommerce_test;
 
 use Drupal\Core\Controller\ControllerBase;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class StubController
@@ -13,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class StubController extends ControllerBase {
 
   /**
+   * @param \Symfony\Component\HttpFoundation\Request $request
    * @param $folder
    * @param $part1
    * @param $part2
@@ -22,12 +24,17 @@ class StubController extends ControllerBase {
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    */
-  public function get($folder, $part1, $part2, $part3, $part4, $part5) {
-    $parts = array_filter([$part1, $part2, $part3, $part4, $part5]);
+  public function get(Request $request, $folder, $part1, $part2, $part3, $part4, $part5) {
+    $method = $request->getMethod() === 'GET' ? NULL : $request->getMethod();
+    $parts = array_filter([$part1, $part2, $part3, $part4, $part5, $method]);
+
     $filename = realpath(__DIR__ . '/..') . '/stubs/' . $folder . '/' . implode('_', $parts) . '.json';
     $json = @file_get_contents($filename);
     if ($json) {
       $data = json_decode($json, TRUE);
+      if (!$data) {
+        throw new \RuntimeException(sprintf("Invalid JSON in stub file: %s", $filename));
+      }
       return new JsonResponse($data, $data['status'] ?? 200);
     }
     // Throw a more helpful exception.

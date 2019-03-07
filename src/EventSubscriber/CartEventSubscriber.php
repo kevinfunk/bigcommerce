@@ -85,7 +85,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
 
       $request_data = new CartRequestData();
-      $request_data->setChannelId($this->config->get('channel.id'));
+      $request_data->setChannelId($this->config->get('channel_id'));
       $request_data->setLineItems([
         new LineItemRequestData([
           'quantity' => $order_item->getQuantity(),

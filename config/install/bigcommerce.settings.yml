@@ -4,8 +4,4 @@ api:
   client_id: ''
   client_secret: ''
   timeout: 15
-channel:
-  id: ''
-  name: ''
-  site_id: ''
-  site_url: ''
+channel_id: null

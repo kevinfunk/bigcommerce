@@ -21,19 +21,6 @@ bigcommerce.settings:
         timeout:
           type: integer
           label: 'BigCommerce API cURL timeout'
-    channel:
-      type: mapping
-      label: 'BigCommerce channel settings'
-      mapping:
-        id:
-          type: string
-          label: 'BigCommerce API Channel ID'
-        name:
-          type: string
-          label: 'BigCommerce API Channel Name'
-        site_id:
-          type: string
-          label: 'BigCommerce API Site ID'
-        site_url:
-          type: uri
-          label: 'BigCommerce API Site URL'
+    channel_id:
+      type: integer
+      label: 'BigCommerce API Channel ID'

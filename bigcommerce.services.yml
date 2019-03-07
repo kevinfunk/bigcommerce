@@ -8,6 +8,12 @@ services:
   bigcommerce.catalog:
     class: \BigCommerce\Api\v3\Api\CatalogApi
     factory: bigcommerce.client_factory:getCatalog
+  bigcommerce.channels:
+    class: \BigCommerce\Api\v3\Api\ChannelsApi
+    factory: bigcommerce.client_factory:getChannels
+  bigcommerce.sites:
+    class: \BigCommerce\Api\v3\Api\SitesApi
+    factory: bigcommerce.client_factory:getSites
   bigcommerce.cart_subscriber:
     class: Drupal\bigcommerce\EventSubscriber\CartEventSubscriber
     arguments: ['@bigcommerce.cart', '@config.factory']

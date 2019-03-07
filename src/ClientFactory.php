@@ -4,6 +4,8 @@ namespace Drupal\bigcommerce;
 
 use BigCommerce\Api\v3\Api\CartApi;
 use BigCommerce\Api\v3\Api\CatalogApi;
+use BigCommerce\Api\v3\Api\ChannelsApi;
+use BigCommerce\Api\v3\Api\SitesApi;
 use BigCommerce\Api\v3\ApiClient;
 use Drupal\bigcommerce\API\Configuration;
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -62,6 +64,26 @@ class ClientFactory {
    */
   public function getCatalog() {
     return new CatalogApi($this->getBaseClient());
+  }
+
+  /**
+   * Gets a BigCommerce SDK channels object.
+   *
+   * @return \BigCommerce\Api\v3\Api\ChannelsApi
+   *   BigCommerce API channels object.
+   */
+  public function getChannels() {
+    return new ChannelsApi($this->getBaseClient());
+  }
+
+  /**
+   * Gets a BigCommerce SDK sites object.
+   *
+   * @return \BigCommerce\Api\v3\Api\SitesApi
+   *   BigCommerce API sites object.
+   */
+  public function getSites() {
+    return new SitesApi($this->getBaseClient());
   }
 
   /**
