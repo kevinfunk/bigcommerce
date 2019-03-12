@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ * Adds checkout button.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\Form\ViewsForm;
+
+/**
+ * Implements hook_form_alter().
+ */
+function bigcommerce_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if ($form_state->getFormObject() instanceof ViewsForm) {
+    /** @var \Drupal\views\ViewExecutable $view */
+    $view = reset($form_state->getBuildInfo()['args']);
+    // Only add the Checkout button if the cart form view has order items.
+    if ($view->storage->get('tag') == 'commerce_cart_form' && !empty($view->result)) {
+      $form['actions']['checkout'] = [
+        '#type' => 'submit',
+        '#value' => t('Checkout'),
+        '#weight' => 5,
+        // Not sure how we should handle permissions, mimic commerce?
+        //'#access' => \Drupal::currentUser()->hasPermission('access checkout'),
+        '#submit' => array_merge($form['#submit'], ['bigcommerce_order_item_views_form_submit']),
+        '#order_id' => $view->argument['order_id']->value[0],
+        '#update_cart' => TRUE,
+        '#show_update_message' => FALSE,
+      ];
+    }
+  }
+}
+
+/**
+ * Submit handler used to redirect to the BigCommerce embedded checkout page.
+ */
+function bigcommerce_order_item_views_form_submit($form, FormStateInterface $form_state) {
+  $order_id = $form_state->getTriggeringElement()['#order_id'];
+  $form_state->setRedirect('bigcommerce.checkout', ['commerce_order' => $order_id]);
+}
