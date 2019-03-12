@@ -2,16 +2,18 @@
 
 namespace Drupal\bigcommerce\Plugin\migrate\source;
 
+use Drupal\migrate\Exception\RequirementsException;
 use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
 use Drupal\migrate\Plugin\MigrationInterface;
 use BigCommerce\Api\v3\Api\CatalogApi;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\migrate\Plugin\RequirementsInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Abstract class to connect to the BigCommerce API.
  */
-abstract class BigCommerceSource extends SourcePluginBase implements ContainerFactoryPluginInterface {
+abstract class BigCommerceSource extends SourcePluginBase implements ContainerFactoryPluginInterface, RequirementsInterface {
 
   /**
    * BigCommerce Catalog API instance.
@@ -43,24 +45,39 @@ abstract class BigCommerceSource extends SourcePluginBase implements ContainerFa
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration, CatalogApi $catalogApi) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration, CatalogApi $catalogApi = NULL) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $migration);
     $this->catalogApi = $catalogApi;
-    $this->fields = $configuration['fields'];
-    $this->ids = $configuration['ids'];
+    $this->fields = $configuration['fields'] ?? [];
+    $this->ids = $configuration['ids'] ?? [];
   }
 
   /**
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration = NULL) {
+    try {
+      $catalog_api = $container->get('bigcommerce.catalog');
+    }
+    catch (\RuntimeException $e) {
+      $catalog_api = NULL;
+    }
     return new static(
       $configuration,
       $plugin_id,
       $plugin_definition,
       $migration,
-      $container->get('bigcommerce.catalog')
+      $catalog_api
     );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function checkRequirements() {
+    if ($this->catalogApi === NULL) {
+      throw new RequirementsException('In order to import products from the BigCommerce the API connection must be configured.');
+    }
   }
 
   /**

@@ -6,3 +6,5 @@ package: Commerce
 dependencies:
   - commerce:commerce_product
   - commerce:commerce_cart
+  - drupal:migrate
+  - drupal:taxonomy
