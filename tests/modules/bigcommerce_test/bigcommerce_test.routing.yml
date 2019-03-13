@@ -8,3 +8,15 @@ bigcommerce_test.stub:
     part5: false
   requirements:
     _access: 'TRUE'
+  # Support all HTTP verbs.
+  methods:
+    - HEAD
+    - GET
+    - POST
+    - PUT
+    - PATCH
+    - DELETE
+    - PURGE
+    - OPTIONS
+    - TRACE
+    - CONNECT

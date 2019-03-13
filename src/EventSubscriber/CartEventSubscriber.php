@@ -69,6 +69,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
     }
     catch (\Exception $e) {
       // Watchdog? not sure what we should do here.
+      throw $e;
     }
   }
 
@@ -98,7 +99,6 @@ class CartEventSubscriber implements EventSubscriberInterface {
 
       // Probably turn this into a function so we can stop caring about if we
       // have a cart or not.
-      $bc_cart = '';
       if (!$bc_cart_id) {
         $cart_response = $this->cartApi->cartsPost($request_data);
         if ($cart_response) {
@@ -115,16 +115,19 @@ class CartEventSubscriber implements EventSubscriberInterface {
       }
 
       $bc_line_items = $bc_cart->getLineItems();
-      $bc_line_items = array_merge($bc_line_items->getPhysicalItems(), $bc_line_items->getDigitalItems(), $bc_line_items->getGiftCertificates());
+      // Don't include gift certificates because they don't have Product IDs.
+      $bc_line_items = array_merge($bc_line_items->getPhysicalItems(), $bc_line_items->getDigitalItems());
       foreach ($bc_line_items as $bc_line_item) {
         // Replace with actual ID once we have it.
         if ($bc_line_item->getProductId() == '111') {
           $order_item->setData('bigcommerce_item_id', $bc_line_item->getId());
+          $order_item->save();
         }
       }
     }
     catch (\Exception $e) {
       // Watchdog? not sure what we should do here.
+      throw $e;
     }
   }
 
@@ -154,6 +157,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
     }
     catch (\Exception $e) {
       // Watchdog? not sure what we should do here.
+      throw $e;
     }
   }
 
@@ -176,6 +180,7 @@ class CartEventSubscriber implements EventSubscriberInterface {
     }
     catch (\Exception $e) {
       // Watchdog? not sure what we should do here.
+      throw $e;
     }
   }
 
