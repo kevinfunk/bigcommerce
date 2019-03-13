@@ -47,12 +47,12 @@ function bigcommerce_order_item_views_form_submit($form, FormStateInterface $for
  */
 function bigcommerce_entity_bundle_field_info(EntityTypeInterface $entity_type, $bundle, array $base_field_definitions) {
   $definitions = [];
-  if ($entity_type->id() === 'taxonomy_term' && $bundle === 'bigcommerce_product_category') {
+  if ($entity_type->id() === 'taxonomy_term' && in_array($bundle, ['bigcommerce_product_category', 'bigcommerce_product_brand'])) {
     $definitions['bigcommerce_id'] = BundleFieldDefinition::create('bigcommerce_id')
       ->setLabel(t('BigCommerce ID'))
       ->setComputed(TRUE)
       ->setSetting('bigcommerce_sync', [
-        'plugin' => 'bigcommerce_product_category',
+        'plugin' => $bundle,
         'id' => 'tid',
       ]);
   }
