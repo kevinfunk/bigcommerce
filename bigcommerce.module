@@ -5,6 +5,8 @@
  * Adds checkout button.
  */
 
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\entity\BundleFieldDefinition;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Form\ViewsForm;
 
@@ -38,4 +40,21 @@ function bigcommerce_form_alter(&$form, FormStateInterface $form_state, $form_id
 function bigcommerce_order_item_views_form_submit($form, FormStateInterface $form_state) {
   $order_id = $form_state->getTriggeringElement()['#order_id'];
   $form_state->setRedirect('bigcommerce.checkout', ['commerce_order' => $order_id]);
+}
+
+/**
+ * Implements hook_entity_bundle_field_info().
+ */
+function bigcommerce_entity_bundle_field_info(EntityTypeInterface $entity_type, $bundle, array $base_field_definitions) {
+  $definitions = [];
+  if ($entity_type->id() === 'taxonomy_term' && $bundle === 'bigcommerce_product_category') {
+    $definitions['bigcommerce_id'] = BundleFieldDefinition::create('bigcommerce_id')
+      ->setLabel(t('BigCommerce ID'))
+      ->setComputed(TRUE)
+      ->setSetting('bigcommerce_sync', [
+        'plugin' => 'bigcommerce_product_category',
+        'id' => 'tid',
+      ]);
+  }
+  return $definitions;
 }
