@@ -83,17 +83,17 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
 
     $page = [
       '#type' => 'container',
-      //'#theme' => 'bigcommerce_checkout',
+      // '#theme' => 'bigcommerce_checkout',
       '#attached' => [
         'library' => [
-          'bigcommerce/checkout'
+          'bigcommerce/checkout',
         ],
       ],
       '#attributes' => [
         'id' => [
-          'bigcommerce-checkout-container'
+          'bigcommerce-checkout-container',
         ],
-      ]
+      ],
     ];
 
     try {

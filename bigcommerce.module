@@ -22,7 +22,7 @@ function bigcommerce_form_alter(&$form, FormStateInterface $form_state, $form_id
         '#value' => t('Checkout'),
         '#weight' => 5,
         // Not sure how we should handle permissions, mimic commerce?
-        //'#access' => \Drupal::currentUser()->hasPermission('access checkout'),
+        // '#access' => \Drupal::currentUser()->hasPermission('access checkout'),
         '#submit' => array_merge($form['#submit'], ['bigcommerce_order_item_views_form_submit']),
         '#order_id' => $view->argument['order_id']->value[0],
         '#update_cart' => TRUE,
