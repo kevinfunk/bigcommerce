@@ -73,6 +73,9 @@ destination:
 migration_dependencies:
   required:
     - bigcommerce_product_type
+    - bigcommerce_product_type_field
+    - bigcommerce_product_type_field_instance
+    - bigcommerce_product_type_form_display
 dependencies:
   enforced:
     module:

@@ -31,14 +31,12 @@ class ProductType extends BigCommerceSource {
       [
         'name' => 'physical',
         'label' => 'Physical product',
-        // TODO: Change this for proper variation Type : 'physical'.
-        'variation_type' => 'default',
+        'variation_type' => 'physical',
       ],
       [
         'name' => 'digital',
         'label' => 'Downloadable product',
-        // TODO: Change this for proper variation Type : 'digital'.
-        'variation_type' => 'default',
+        'variation_type' => 'digital',
       ],
     ];
   }

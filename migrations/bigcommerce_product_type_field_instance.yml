@@ -45,6 +45,7 @@ destination:
   plugin: entity:field_config
 migration_dependencies:
   required:
+    - bigcommerce_product_type
     - bigcommerce_product_type_field
 dependencies:
   enforced:

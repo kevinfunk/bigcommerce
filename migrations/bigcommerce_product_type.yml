@@ -42,9 +42,9 @@ process:
 destination:
   plugin: 'entity:commerce_product_type'
   destination_module: commerce_product
-#migration_dependencies:
-#  required:
-#    - bigcommerce_product_variation_type
+migration_dependencies:
+  required:
+    - bigcommerce_product_variation_type
 dependencies:
   enforced:
     module:
