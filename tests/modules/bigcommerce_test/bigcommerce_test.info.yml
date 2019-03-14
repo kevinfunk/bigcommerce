@@ -1,4 +1,4 @@
-name: BigCommerce
+name: BigCommerce Test
 type: module
 description: A test module for BigCommerce.
 core: 8.x
