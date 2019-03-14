@@ -305,7 +305,7 @@ class SettingsForm extends ConfigFormBase {
         ->set('channel_id', $channel->getId())
         ->save();
 
-      $this->messenger()->addStatus('Created new BigCommerce channel %channel', ['%channel' => $channel->getName()]);
+      $this->messenger()->addStatus($this->t('Created new BigCommerce channel %channel', ['%channel' => $channel->getName()]));
       // Automatically create a site for the new channel.
       $this->setupSite();
     }
