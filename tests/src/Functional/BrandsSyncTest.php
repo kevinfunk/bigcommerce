@@ -10,11 +10,11 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 
 /**
- * Tests syncing product categories from BigCommerce.
+ * Tests syncing brands from BigCommerce.
  *
  * @group bigcommerce
  */
-class ProductCategorySyncTest extends BrowserTestBase implements MigrateMessageInterface {
+class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface {
 
   /**
    * {@inheritdoc}
@@ -41,30 +41,21 @@ class ProductCategorySyncTest extends BrowserTestBase implements MigrateMessageI
   public function testSync() {
     $terms = \Drupal::entityTypeManager()
       ->getStorage('taxonomy_term')
-      ->loadByProperties(['vid' => 'bigcommerce_product_category']);
+      ->loadByProperties(['vid' => 'bigcommerce_product_brand']);
     $this->assertCount(0, $terms);
-    $this->executeMigrations('bigcommerce_product_category');
+    $this->executeMigrations('bigcommerce_product_brand');
     $terms = \Drupal::entityTypeManager()
       ->getStorage('taxonomy_term')
-      ->loadByProperties(['vid' => 'bigcommerce_product_category']);
-    $this->assertCount(6, $terms);
+      ->loadByProperties(['vid' => 'bigcommerce_product_brand']);
+    $this->assertCount(5, $terms);
 
     // Test the bigcommerce_id field.
-    $this->assertSame(20, Term::load(1)->bigcommerce_id->value);
-    $this->assertSame(18, Term::load(2)->get('bigcommerce_id')->value);
-    $this->assertSame(19, Term::load(3)->get('bigcommerce_id')->value);
-    $this->assertSame(21, Term::load(4)->get('bigcommerce_id')->value);
-    $this->assertSame(22, Term::load(5)->get('bigcommerce_id')->value);
-    $this->assertSame(23, Term::load(6)->get('bigcommerce_id')->value);
-
-    // Test terms not created via syncing are not broken.
-    $term = Term::create([
-      'vid' => 'bigcommerce_product_category',
-      'name' => 'a fake test',
-    ]);
-    $this->assertNull($term->get('bigcommerce_id')->value);
-    $term->save();
-    $this->assertNull(Term::load(7)->get('bigcommerce_id')->value);
+    $apple_term = Term::load(5);
+    $this->assertSame(39, $apple_term->bigcommerce_id->value);
+    $this->assertSame('Apple', $apple_term->label());
+    $this->assertSame('Apple', $apple_term->field_product_brand_image->alt);
+    $this->assertSame('public://bigcommerce/product-brand/apple.jpg', $apple_term->field_product_brand_image->entity->getFileUri());
+    $this->assertFileExists($apple_term->field_product_brand_image->entity->getFileUri());
   }
 
   /**
