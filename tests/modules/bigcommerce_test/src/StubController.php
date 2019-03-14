@@ -29,16 +29,18 @@ class StubController extends ControllerBase {
     $parts = array_filter([$part1, $part2, $part3, $part4, $part5, $method]);
 
     $filename = realpath(__DIR__ . '/..') . '/stubs/' . $folder . '/' . implode('_', $parts) . '.json';
-    $json = @file_get_contents($filename);
-    if ($json) {
-      $data = json_decode($json, TRUE);
-      if (!$data) {
-        throw new \RuntimeException(sprintf("Invalid JSON in stub file: %s", $filename));
-      }
-      return new JsonResponse($data, $data['status'] ?? 200);
+    if (!file_exists($filename)) {
+      // Throw a more helpful exception.
+      throw new \RuntimeException(sprintf("Can not find stub file: %s", $filename));
     }
-    // Throw a more helpful exception.
-    throw new \RuntimeException(sprintf("Can not find stub file: %s", $filename));
+    // Use include so files can contain logic using PHP.
+    ob_start();
+    @include $filename;
+    $data = json_decode(ob_get_clean(), TRUE);
+    if (!$data) {
+      throw new \RuntimeException(sprintf("Invalid JSON in stub file: %s", $filename));
+    }
+    return new JsonResponse($data, $data['status'] ?? 200);
   }
 
 }

@@ -12,7 +12,8 @@ build:
         halt-on-fail: false
     testing:
       run_tests.standard:
-        concurrency: 15
+        # @todo Bump back to 15 when https://www.drupal.org/project/drupal/issues/3040166 is fixed.
+        concurrency: 1
         types: 'Simpletest,PHPUnit-Unit,PHPUnit-Kernel,PHPUnit-Functional,PHPUnit-FunctionalJavascript'
         testgroups: '--all'
         halt-on-fail: false
