@@ -9,5 +9,6 @@ dependencies:
   - commerce:commerce_cart
   - drupal:migrate
   - drupal:taxonomy
+  - drupal:image
   - entity:entity
   - migrate_file:migrate_file
