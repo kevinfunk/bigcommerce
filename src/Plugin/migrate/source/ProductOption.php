@@ -2,8 +2,7 @@
 
 namespace Drupal\bigcommerce\Plugin\migrate\source;
 
-use BigCommerce\Api\v3\Model\Option;
-use BigCommerce\Api\v3\Model\OptionCollectionResponse;
+use BigCommerce\Api\v3\ApiException;
 
 /**
  * Gets all Product Options from BigCommerce API.
@@ -49,20 +48,23 @@ class ProductOption extends BigCommerceSource {
   /**
    * Load Product Options from BigCommerce API.
    *
-   * @param array $params = []
+   * @param array $params
+   *   (optional) Defaults to an empty array.
    *
-   * @throws \BigCommerce\Api\v3\ApiException on non-2xx response
+   * @return array
+   *   Contains \BigCommerce\Api\v3\Model\OptionCollectionResponse, HTTP status
+   *   code, HTTP response headers (array of strings).
+   *
+   * @throws \BigCommerce\Api\v3\ApiException
+   *   Thrown on a non-2xx response.
    * @throws \InvalidArgumentException
-   * @return array of \BigCommerce\Api\v3\Model\OptionCollectionResponse, HTTP status code, HTTP response headers (array of strings)
    */
   protected function getProductOptions(array $params = []) {
 
     // Parse inputs.
     $resourcePath = '/catalog/options';
-    $httpBody = '';
     $queryParams = [];
     $headerParams = [];
-    $formParams = [];
     $_header_accept = $this->catalogApi->getApiClient()->selectHeaderAccept(['application/json']);
     if (!is_null($_header_accept)) {
       $headerParams['Accept'] = $_header_accept;
@@ -74,24 +76,19 @@ class ProductOption extends BigCommerceSource {
       $queryParams[$key] = $this->catalogApi->getApiClient()->getSerializer()->toQueryValue($param);
     }
 
-    // For model (json/xml).
-    if (count($formParams) > 0) {
-      $httpBody = $formParams; // for HTTP post (form)
-    }
-
     // Make the API Call.
     try {
       list($response, $statusCode, $httpHeader) = $this->catalogApi->getApiClient()->callApi(
         $resourcePath,
         'GET',
         $queryParams,
-        $httpBody,
+        '',
         $headerParams,
-        OptionCollectionResponse::class,
+        '\BigCommerce\Api\v3\Model\OptionCollectionResponse',
         $resourcePath
       );
       return [
-        $this->catalogApi->getApiClient()->getSerializer()->deserialize($response, OptionCollectionResponse::class, $httpHeader),
+        $this->catalogApi->getApiClient()->getSerializer()->deserialize($response, '\BigCommerce\Api\v3\Model\OptionCollectionResponse', $httpHeader),
         $statusCode,
         $httpHeader,
       ];
@@ -99,7 +96,7 @@ class ProductOption extends BigCommerceSource {
     }
     catch (ApiException $e) {
       if ($e->getCode() === 200) {
-        $data = $this->catalogApi->getApiClient()->getSerializer()->deserialize($e->getResponseBody(), OptionCollectionResponse::class, $e->getResponseHeaders());
+        $data = $this->catalogApi->getApiClient()->getSerializer()->deserialize($e->getResponseBody(), '\BigCommerce\Api\v3\Model\OptionCollectionResponse', $e->getResponseHeaders());
         $e->setResponseObject($data);
       }
       throw $e;

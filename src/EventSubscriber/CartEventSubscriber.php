@@ -91,9 +91,9 @@ class CartEventSubscriber implements EventSubscriberInterface {
         new LineItemRequestData([
           'quantity' => $order_item->getQuantity(),
           // Will be a BigCommerce specific ID, change this once that exists.
-          'product_id' => '111',
+          'product_id' => $order_item->getPurchasedEntity()->getProduct()->bigcommerce_id->value,
           // Will be a BigCommerce specific ID, change this once that exists.
-          // 'variation_id' => $order_item->getPurchasedEntity()->getSku().
+          'variation_id' => $order_item->getPurchasedEntity()->bigcommerce_id->value,
         ]),
       ]);
 
@@ -118,11 +118,8 @@ class CartEventSubscriber implements EventSubscriberInterface {
       // Don't include gift certificates because they don't have Product IDs.
       $bc_line_items = array_merge($bc_line_items->getPhysicalItems(), $bc_line_items->getDigitalItems());
       foreach ($bc_line_items as $bc_line_item) {
-        // Replace with actual ID once we have it.
-        if ($bc_line_item->getProductId() == '111') {
-          $order_item->setData('bigcommerce_item_id', $bc_line_item->getId());
-          $order_item->save();
-        }
+        $order_item->setData('bigcommerce_item_id', $bc_line_item->getId());
+        $order_item->save();
       }
     }
     catch (\Exception $e) {

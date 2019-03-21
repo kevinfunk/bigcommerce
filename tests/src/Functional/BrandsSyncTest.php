@@ -3,9 +3,7 @@
 namespace Drupal\Tests\bigcommerce\Functional;
 
 use Drupal\Core\Url;
-use Drupal\migrate\MigrateExecutable;
 use Drupal\migrate\MigrateMessageInterface;
-use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 
@@ -15,6 +13,7 @@ use Drupal\Tests\BrowserTestBase;
  * @group bigcommerce
  */
 class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface {
+  use BigCommerceTestTrait;
 
   /**
    * {@inheritdoc}
@@ -56,27 +55,6 @@ class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface 
     $this->assertSame('Apple', $apple_term->field_product_brand_image->alt);
     $this->assertSame('public://bigcommerce/product-brand/apple.jpg', $apple_term->field_product_brand_image->entity->getFileUri());
     $this->assertFileExists($apple_term->field_product_brand_image->entity->getFileUri());
-  }
-
-  /**
-   * Executes a set of migrations in dependency order.
-   *
-   * @param string|string[] $ids
-   *   Array of migration IDs, in any order or a single ID.
-   */
-  protected function executeMigrations($ids) {
-    $manager = $this->container->get('plugin.manager.migration');
-    $ids = (array) $ids;
-    array_walk($ids, function ($id) use ($manager) {
-      // This is possibly a base plugin ID and we want to run all derivatives.
-      $instances = $manager->createInstances($id);
-      array_walk($instances, function (MigrationInterface $migration) {
-        (new MigrateExecutable($migration, $this))->import();
-      });
-    });
-  }
-
-  public function display($message, $type = 'status') {
   }
 
 }

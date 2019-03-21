@@ -3,9 +3,7 @@
 namespace Drupal\Tests\bigcommerce\Functional;
 
 use Drupal\Core\Url;
-use Drupal\migrate\MigrateExecutable;
 use Drupal\migrate\MigrateMessageInterface;
-use Drupal\migrate\Plugin\MigrationInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 
@@ -15,6 +13,7 @@ use Drupal\Tests\BrowserTestBase;
  * @group bigcommerce
  */
 class ProductCategorySyncTest extends BrowserTestBase implements MigrateMessageInterface {
+  use BigCommerceTestTrait;
 
   /**
    * {@inheritdoc}
@@ -65,27 +64,6 @@ class ProductCategorySyncTest extends BrowserTestBase implements MigrateMessageI
     $this->assertNull($term->get('bigcommerce_id')->value);
     $term->save();
     $this->assertNull(Term::load(7)->get('bigcommerce_id')->value);
-  }
-
-  /**
-   * Executes a set of migrations in dependency order.
-   *
-   * @param string|string[] $ids
-   *   Array of migration IDs, in any order or a single ID.
-   */
-  protected function executeMigrations($ids) {
-    $manager = $this->container->get('plugin.manager.migration');
-    $ids = (array) $ids;
-    array_walk($ids, function ($id) use ($manager) {
-      // This is possibly a base plugin ID and we want to run all derivatives.
-      $instances = $manager->createInstances($id);
-      array_walk($instances, function (MigrationInterface $migration) {
-        (new MigrateExecutable($migration, $this))->import();
-      });
-    });
-  }
-
-  public function display($message, $type = 'status') {
   }
 
 }

@@ -56,5 +56,33 @@ function bigcommerce_entity_bundle_field_info(EntityTypeInterface $entity_type, 
         'id' => 'tid',
       ]);
   }
+  elseif ($entity_type->id() === 'commerce_product') {
+    $manager = \Drupal::service('plugin.manager.migration');
+    /** @var \Drupal\migrate\Plugin\Migration $type_migration */
+    $type_migration = $manager->createInstance('bigcommerce_product_type');
+    if ($type_migration->getIdMap()->lookupSourceId(['id' => $bundle])) {
+      $definitions['bigcommerce_id'] = BundleFieldDefinition::create('bigcommerce_id')
+        ->setLabel(t('BigCommerce ID'))
+        ->setComputed(TRUE)
+        ->setSetting('bigcommerce_sync', [
+          'plugin' => 'bigcommerce_product',
+          'id' => 'product_id',
+        ]);
+    }
+  }
+  elseif ($entity_type->id() === 'commerce_product_variation') {
+    $manager = \Drupal::service('plugin.manager.migration');
+    /** @var \Drupal\migrate\Plugin\Migration $type_migration */
+    $type_migration = $manager->createInstance('bigcommerce_product_variation_type');
+    if ($type_migration->getIdMap()->lookupSourceId(['id' => $bundle])) {
+      $definitions['bigcommerce_id'] = BundleFieldDefinition::create('bigcommerce_id')
+        ->setLabel(t('BigCommerce ID'))
+        ->setComputed(TRUE)
+        ->setSetting('bigcommerce_sync', [
+          'plugin' => 'bigcommerce_product_variation',
+          'id' => 'variation_id',
+        ]);
+    }
+  }
   return $definitions;
 }
