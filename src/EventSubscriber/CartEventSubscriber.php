@@ -90,10 +90,8 @@ class CartEventSubscriber implements EventSubscriberInterface {
       $request_data->setLineItems([
         new LineItemRequestData([
           'quantity' => $order_item->getQuantity(),
-          // Will be a BigCommerce specific ID, change this once that exists.
           'product_id' => $order_item->getPurchasedEntity()->getProduct()->bigcommerce_id->value,
-          // Will be a BigCommerce specific ID, change this once that exists.
-          'variation_id' => $order_item->getPurchasedEntity()->bigcommerce_id->value,
+          'variant_id' => $order_item->getPurchasedEntity()->bigcommerce_id->value,
         ]),
       ]);
 
