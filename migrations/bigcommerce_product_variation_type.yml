@@ -4,7 +4,7 @@ label: Create Commerce Product Variation Types.
 status: true
 migration_tags:
   - BigCommerce
-  - Content
+  - BigCommerce Configuration
 idMap:
   plugin: bigcommerce_sync
 migration_group: bigcommerce
