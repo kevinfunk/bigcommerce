@@ -31,6 +31,19 @@ process:
       plugin: skip_on_empty
       method: row
   hidden: 'constants/hidden'
+  exists:
+    -
+      plugin: migration_lookup
+      migration: bigcommerce_product_attribute_field_form_display
+      no_stub: true
+      source:
+        - field_name
+    -
+      plugin: callback
+      callable: is_null
+    -
+      plugin: skip_on_empty
+      method: row
 destination:
   plugin: component_entity_form_display
 migration_dependencies:

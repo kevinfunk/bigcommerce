@@ -26,6 +26,20 @@ process:
   field_name: field_name
   bundle: product_type
   hidden: 'constants/hidden'
+  exists:
+    -
+      plugin: migration_lookup
+      migration: bigcommerce_product_type_field_form_display
+      no_stub: true
+      source:
+        - field_name
+        - product_type
+    -
+      plugin: callback
+      callable: is_null
+    -
+      plugin: skip_on_empty
+      method: row
 destination:
   plugin: component_entity_form_display
 migration_dependencies:
