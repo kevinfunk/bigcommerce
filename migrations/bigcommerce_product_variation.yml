@@ -47,6 +47,7 @@ migration_dependencies:
   required:
     - bigcommerce_product
     - bigcommerce_product_attribute
+    - bigcommerce_product_attribute_value
     - bigcommerce_product_variation_type
     - bigcommerce_product_variation_type_field
     - bigcommerce_product_variation_type_field_instance

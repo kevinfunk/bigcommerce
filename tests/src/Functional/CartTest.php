@@ -50,8 +50,6 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
     ]);
     $config->save();
     $this->executeMigrations();
-    // @todo investigate why this is necessary, probably down to dependencies.
-    $this->executeMigrations();
     $this->assertMigrations();
   }
 

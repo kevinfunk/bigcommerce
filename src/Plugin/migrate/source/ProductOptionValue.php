@@ -20,14 +20,18 @@ class ProductOptionValue extends ProductOption {
     $total_pages = 1;
     while ($params['page'] < $total_pages) {
       $params['page']++;
+      $values = [];
 
       $response = $this->getSourceResponse($params);
       foreach ($response->getData() as $option) {
         foreach ($option->getOptionValues() as $value) {
           $data = $value->get();
-          $data['attribute_name'] = $option->getName();
-          $data['attribute_type'] = $option->getType();
-          yield $data;
+          if (!isset($values[$option->getName()][$data['id']])) {
+            $data['attribute_name'] = $option->getName();
+            $data['attribute_type'] = $option->getType();
+            $values[$option->getName()][$data['id']] = $data['id'];
+            yield $data;
+          }
         }
       }
 
