@@ -18,9 +18,9 @@ class ProductOptionValue extends ProductOption {
    */
   public function getYield(array $params) {
     $total_pages = 1;
+    $values = [];
     while ($params['page'] < $total_pages) {
       $params['page']++;
-      $values = [];
 
       $response = $this->getSourceResponse($params);
       foreach ($response->getData() as $option) {
