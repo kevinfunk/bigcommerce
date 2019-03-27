@@ -1,6 +1,6 @@
 # This migration uses the source URL using the BigCommerce API.
 id: bigcommerce_product_category
-label: Migrate BigCommerce Product categories to taxonomy terms.
+label:  BigCommerce Product categories
 status: true
 migration_tags:
   - BigCommerce

@@ -19,3 +19,8 @@ services:
     arguments: ['@bigcommerce.cart', '@config.factory']
     tags:
       - { name: event_subscriber }
+  bigcommerce.sync_subscriber:
+    class: Drupal\bigcommerce\EventSubscriber\SyncSubscriber
+    arguments: ['@keyvalue']
+    tags:
+      - { name: event_subscriber }

@@ -16,6 +16,11 @@ class ProductOptionValue extends ProductOption {
   /**
    * {@inheritdoc}
    */
+  protected $trackChanges = TRUE;
+
+  /**
+   * {@inheritdoc}
+   */
   public function getYield(array $params) {
     $total_pages = 1;
     $values = [];

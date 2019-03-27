@@ -95,29 +95,4 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
     $this->assertSession()->fieldNotExists('edit_quantity[0]');
   }
 
-  /**
-   * Asserts that all the migrations have occurred as expected.
-   */
-  protected function assertMigrations() {
-    /** @var \Drupal\migrate\Plugin\MigrationPluginManager $mm */
-    $mm = $this->container->get('plugin.manager.migration');
-    $this->assertEquals($mm->createInstance('bigcommerce_product_category')->getIdMap()->importedCount(), 6);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_attribute')->getIdMap()->importedCount(), 4);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_attribute_field')->getIdMap()->importedCount(), 3);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_attribute_field_instance')->getIdMap()->importedCount(), 3);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_attribute_value')->getIdMap()->importedCount(), 21);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_variation_type')->getIdMap()->importedCount(), 2);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_brand')->getIdMap()->importedCount(), 5);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_type')->getIdMap()->importedCount(), 2);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_type_field')->getIdMap()->importedCount(), 3);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_type_field_instance')->getIdMap()->importedCount(), 6);
-    $this->assertEquals($mm->createInstance('bigcommerce_product')->getIdMap()->importedCount(), 15);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_variation_type_field')->getIdMap()->importedCount(), 5);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_variation_type_field_instance')->getIdMap()->importedCount(), 10);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_variation_type_field_form_display')->getIdMap()->importedCount(), 10);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_type_field_form_display')->getIdMap()->importedCount(), 6);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_attribute_field_form_display')->getIdMap()->importedCount(), 3);
-    $this->assertEquals($mm->createInstance('bigcommerce_product_variation')->getIdMap()->importedCount(), 70);
-  }
-
 }

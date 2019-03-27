@@ -63,6 +63,11 @@ class ProductVariation extends Product {
         $migration_plugin_manager = \Drupal::service('plugin.manager.migration');
         $attribute_value_migration = $migration_plugin_manager->createInstance('bigcommerce_product_attribute_value');
         $ids = $attribute_value_migration->getIdMap()->lookupDestinationId(['id' => $id]);
+        if (!$ids) {
+          // @todo move ProductVariation::prepareRow() into a process plugin. We
+          //   shouldn't be messing with source values like this.
+          continue;
+        }
         $attribute_value = \Drupal::entityTypeManager()->getStorage('commerce_product_attribute_value')->load($ids[0]);
         $attribute_migration = $migration_plugin_manager->createInstance('bigcommerce_product_attribute');
         $attribute_source = $attribute_migration->getIdMap()->lookupSourceId(['id' => $attribute_value->getAttributeId()]);

@@ -157,4 +157,16 @@ abstract class BigCommerceSource extends SourcePluginBase implements ContainerFa
     }
   }
 
+  /**
+   * Gets whether this source tracks changes.
+   *
+   * BigCommerce content entity migrations should have trackChanges set to TRUE
+   * so the Drupal entities are updated when they are in the BigCommerce API.
+   *
+   * @return bool
+   */
+  public function trackChanges() {
+    return $this->trackChanges;
+  }
+
 }

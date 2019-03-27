@@ -14,6 +14,11 @@ class ProductBrand extends BigCommerceSource {
   /**
    * {@inheritdoc}
    */
+  protected $trackChanges = TRUE;
+
+  /**
+   * {@inheritdoc}
+   */
   public function getSourceResponse(array $params) {
     return $this->catalogApi->getBrands($params);
   }

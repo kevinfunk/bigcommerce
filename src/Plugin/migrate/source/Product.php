@@ -16,6 +16,11 @@ class Product extends BigCommerceSource {
   /**
    * {@inheritdoc}
    */
+  protected $trackChanges = TRUE;
+
+  /**
+   * {@inheritdoc}
+   */
   public function getSourceResponse(array $params) {
     $params['include'] = 'variants,custom_fields,images';
     return $this->catalogApi->getProducts($params);

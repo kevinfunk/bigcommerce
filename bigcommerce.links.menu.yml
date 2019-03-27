@@ -8,3 +8,9 @@ bigcommerce.settings:
   route_name: 'bigcommerce.settings'
   description: 'Configure BigCommerce'
   parent: 'bigcommerce.configuration'
+
+bigcommerce.product_sync:
+  title: 'BigCommerce Product synchronization'
+  route_name: 'bigcommerce.product_sync'
+  description: 'Sync products from BigCommerce'
+  parent: 'bigcommerce.configuration'

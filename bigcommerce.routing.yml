@@ -6,6 +6,23 @@ bigcommerce.configuration:
   requirements:
     _permission: 'access bigcommerce administration pages'
 
+bigcommerce.product_sync:
+  path: '/admin/commerce/config/bigcommerce/product_sync'
+  defaults:
+    _form: '\Drupal\bigcommerce\Form\ProductSync'
+    _title: 'BigCommerce Product synchronization'
+  requirements:
+    _permission: 'access bigcommerce administration pages'
+
+bigcommerce.product_sync.log:
+  path: '/admin/reports/bigcommerce/product_sync'
+  defaults:
+    _controller: '\Drupal\bigcommerce\Controller\BigCommerceController::showLog'
+  requirements:
+    _permission: 'access bigcommerce administration pages'
+  options:
+    _admin_route: TRUE
+
 bigcommerce.settings:
   path: '/admin/commerce/config/bigcommerce/settings'
   defaults:

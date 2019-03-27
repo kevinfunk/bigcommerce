@@ -4,7 +4,7 @@ label: Migrate BigCommerce Product Options to Commerce Product Attributes.
 status: true
 migration_tags:
   - BigCommerce
-  - BigCommerce Content
+  - BigCommerce Configuration
 idMap:
   plugin: bigcommerce_sync
 migration_group: bigcommerce

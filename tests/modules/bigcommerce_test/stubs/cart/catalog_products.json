@@ -4229,7 +4229,7 @@
     },
     {
       "id": 111,
-      "name": "[Sample] Smith Journal 13",
+      "name": "<?php print Drupal::state()->get('ProductSyncUiTest.name', '[Sample] Smith Journal 13'); ?>",
       "type": "physical",
       "sku": "SM13",
       "description": "<p>Volume 13 of Smith Journal is crammed with more than its fair share of sharp minds. Top of the list would have to be Solomon Shereshevsky, who remembered every single thing he&rsquo;d ever come across &ndash; a great skill to have when it came to party tricks, but enough to send him crackers. And then there&rsquo;s Delbert Trew who spends more time than you can imagine thinking about something very sharp indeed: barbed wire. You can&rsquo;t go past Samuel Morse, either, who was a famous portrait painter before he gave his name to the code he invented. What a genius! And we&rsquo;re pretty taken with Noel Turner, who was smart enough to get around some pretty weird New Zealand laws to invent a car that, for a while, was a huge success. As well, you&rsquo;ll find stories on a cross-dressing spy, a couple of Sydney nerds who revolutionised modern music, court illustration, big wheels, the dubious science of controlling the weather and a whole stack of other stuff.<\/p>\r\n<p>143 Pages<\/p>",

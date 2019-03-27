@@ -15,7 +15,7 @@ function bigcommerce_uninstall() {
   /** @var \Drupal\migrate\Plugin\Migration[] $plugins */
   $plugins = $manager->createInstances([]);
   $plugins = array_filter($plugins, function (Migration $migration) {
-    return in_array('BigCommerce', $migration->getMigrationTags());
+    return in_array('BigCommerce', $migration->getMigrationTags(), TRUE);
   });
 
   // Removes the mapping and message tables created by syncing.
