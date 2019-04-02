@@ -74,7 +74,7 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
     $this->assertEquals($order_items[0]->getData('bigcommerce_item_id'), '6e193ce6-f327-4dcc-b75e-72cf6738525e');
 
     // Confirm that the second add to cart submit increments the quantity
-    // of the first order item..
+    // of the first order item.
     $this->postAddToCart($product);
     \Drupal::entityTypeManager()->getStorage('commerce_order')->resetCache();
     \Drupal::entityTypeManager()->getStorage('commerce_order_item')->resetCache();
