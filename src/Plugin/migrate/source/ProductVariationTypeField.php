@@ -2,8 +2,6 @@
 
 namespace Drupal\bigcommerce\Plugin\migrate\source;
 
-use Drupal\migrate\Row;
-
 /**
  * Gets all Product Types from BigCommerce API.
  *

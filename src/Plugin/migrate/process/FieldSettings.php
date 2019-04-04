@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drupal\bigcommerce\Plugin\migrate\process;
 
 use Drupal\migrate\MigrateExecutableInterface;
