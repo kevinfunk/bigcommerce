@@ -11,8 +11,6 @@ migration_group: bigcommerce
 source:
   plugin: bigcommerce_product_option_value
   ids:
-    attribute_name:
-      type: string
     id:
       type: integer
 process:

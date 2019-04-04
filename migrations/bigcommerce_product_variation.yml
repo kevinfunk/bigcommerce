@@ -40,6 +40,10 @@ process:
     alt: product_name
     source: image_url
     destination: constants/file_destination
+  attribute_values:
+    plugin: bigcommerce_product_attribute
+    migration: bigcommerce_product_attribute_value
+    no_stub: true
 destination:
   plugin: entity:commerce_product_variation
   destination_module: commerce_product

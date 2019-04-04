@@ -46,54 +46,14 @@ class ProductVariation extends Product {
    * {@inheritdoc}
    */
   public function prepareRow(Row $row) {
-    $migration = $this->migration;
-    if (!isset($migration->orgProcess)) {
-      $migration->orgProcess = $migration->get('process');
-    }
-    $process = $migration->orgProcess;
-
-    // Process Product Attributes.
-    $attributes = $row->getSourceProperty('option_values');
-    if (!empty($attributes)) {
-      foreach ($attributes as $attribute) {
-        $id = $attribute->getId();
-        // TODO: Modify Product Attribute migration to use fieldname rather than
-        // TODO: using the field source Name.
-        // Go through migrations to load up the initial attribute source ID.
-        $migration_plugin_manager = \Drupal::service('plugin.manager.migration');
-        $attribute_value_migration = $migration_plugin_manager->createInstance('bigcommerce_product_attribute_value');
-        $ids = $attribute_value_migration->getIdMap()->lookupDestinationId(['id' => $id]);
-        if (!$ids) {
-          // @todo move ProductVariation::prepareRow() into a process plugin. We
-          //   shouldn't be messing with source values like this.
-          continue;
-        }
-        $attribute_value = \Drupal::entityTypeManager()->getStorage('commerce_product_attribute_value')->load($ids[0]);
-        $attribute_migration = $migration_plugin_manager->createInstance('bigcommerce_product_attribute');
-        $attribute_source = $attribute_migration->getIdMap()->lookupSourceId(['id' => $attribute_value->getAttributeId()]);
-        $variation_field_migration = $migration_plugin_manager->createInstance('bigcommerce_product_variation_type_field');
-        $variation_field_destinations = $variation_field_migration->getIdMap()->lookupDestinationId(['source_name' => $attribute_value->getAttributeId()]);
-
-        $row->setSourceProperty('attribute_' . $id . '_id', $id);
-        $row->setSourceProperty('attribute_' . $id . '_name', $attribute_source['name']);
-
-        $process[$variation_field_destinations[1]] = [
-          [
-            'plugin' => 'migration_lookup',
-            'migration' => 'bigcommerce_product_attribute_value',
-            'source_ids' => [
-              'bigcommerce_product_attribute_value' => [
-                'attribute_name' => 'attribute_' . $id . '_name',
-                'id' => 'attribute_' . $id . '_id',
-              ],
-            ],
-            'no_stub' => TRUE,
-          ],
-        ];
+    $option_values = $row->getSourceProperty('option_values');
+    $option_values_ids = [];
+    if (!empty($option_values)) {
+      foreach ($option_values as $option_value) {
+        $option_values_ids[] = $option_value->getId();
       }
     }
-
-    $migration->set('process', $process);
+    $row->setSourceProperty('option_values_ids', $option_values_ids);
 
     return parent::prepareRow($row);
   }
