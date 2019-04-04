@@ -26,14 +26,14 @@ class ProductOption extends BigCommerceSource {
    */
   public function getYield(array $params) {
     $total_pages = 1;
+    $options = [];
     while ($params['page'] < $total_pages) {
       $params['page']++;
-      $options = [];
 
       $response = $this->getSourceResponse($params);
       foreach ($response->getData() as $option) {
         $name = $option->getName();
-        if (!in_array($name, $options)) {
+        if (!in_array($name, $options, TRUE)) {
           $options[] = $name;
           yield $option->get();
         }

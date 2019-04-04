@@ -18,9 +18,10 @@ class ProductOptionField extends ProductOption {
    */
   public function getYield(array $params) {
     $total_pages = 1;
+    $options = [];
+    $fields = [];
     while ($params['page'] < $total_pages) {
       $params['page']++;
-      $options = [];
 
       $response = $this->getSourceResponse($params);
       foreach ($response->getData() as $option) {
@@ -28,11 +29,18 @@ class ProductOptionField extends ProductOption {
         $option_name = $option->getName();
 
         // If no fields are required, skip this option.
-        if (empty($option_fields) || in_array($option_name, $options)) {
+        if (empty($option_fields) || in_array($option_name, $options, TRUE)) {
           continue;
         }
 
         foreach ($option_fields as $field) {
+          // If this is the field storage, make sure hasn't already been
+          // created.
+          if ($this->configuration['import_type'] === 'storage' && in_array($field['field_name'], $fields, TRUE)) {
+            continue;
+          }
+
+          $fields[] = $field['field_name'];
           $field['attribute_name'] = $option_name;
           yield $field;
         }

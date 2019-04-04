@@ -14,6 +14,8 @@ source:
   ids:
     field_name:
       type: string
+    attribute_name:
+      type: string
   constants:
     entity_type: commerce_product_attribute_value
     form_mode: default
@@ -38,6 +40,7 @@ process:
       no_stub: true
       source:
         - field_name
+        - attribute_name
     -
       plugin: callback
       callable: is_null

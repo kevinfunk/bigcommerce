@@ -14,6 +14,8 @@ source:
   ids:
     field_name:
       type: string
+    attribute_name:
+      type: string
   constants:
     entity_type: commerce_product_attribute_value
 process:
