@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\bigcommerce\FunctionalJavascript;
 
+use Drupal\commerce_store\StoreCreationTrait;
 use Drupal\Core\Url;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 
@@ -11,6 +12,7 @@ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
  * @group bigcommerce
  */
 class AdminTest extends WebDriverTestBase {
+  use StoreCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -42,6 +44,11 @@ class AdminTest extends WebDriverTestBase {
     $page->clickLink('BigCommerce Settings');
     $this->htmlOutput();
     $assert->pageTextNotContains('Connection status');
+    $assert->pageTextContains('A default commerce store must exist before BigCommerce can be used.');
+    $assert->linkByHrefExists(Url::fromRoute('entity.commerce_store.add_page')->toString());
+    $this->createStore();
+    $this->getSession()->reload();
+    $assert->pageTextNotContains('A default commerce store must exist before BigCommerce can be used.');
     $api_path = Url::fromUri('base://bigcommerce_stub/connection')->setAbsolute()->toString();
     $page->fillField('api_settings[path]', $api_path);
     $page->fillField('api_settings[access_token]', 'an access token');

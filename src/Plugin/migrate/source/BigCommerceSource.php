@@ -2,7 +2,7 @@
 
 namespace Drupal\bigcommerce\Plugin\migrate\source;
 
-use Drupal\migrate\Exception\RequirementsException;
+use Drupal\bigcommerce\Exception\UnconfiguredException;
 use Drupal\migrate\Plugin\migrate\source\SourcePluginBase;
 use Drupal\migrate\Plugin\MigrationInterface;
 use BigCommerce\Api\v3\Api\CatalogApi;
@@ -59,7 +59,7 @@ abstract class BigCommerceSource extends SourcePluginBase implements ContainerFa
     try {
       $catalog_api = $container->get('bigcommerce.catalog');
     }
-    catch (\RuntimeException $e) {
+    catch (UnconfiguredException $e) {
       $catalog_api = NULL;
     }
     return new static(
@@ -76,7 +76,7 @@ abstract class BigCommerceSource extends SourcePluginBase implements ContainerFa
    */
   public function checkRequirements() {
     if ($this->catalogApi === NULL) {
-      throw new RequirementsException('In order to import products from the BigCommerce the API connection must be configured.');
+      throw new UnconfiguredException('In order to import products from the BigCommerce the API connection must be configured.');
     }
   }
 

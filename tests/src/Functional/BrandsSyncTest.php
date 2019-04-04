@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\bigcommerce\Functional;
 
+use Drupal\commerce_store\StoreCreationTrait;
 use Drupal\Core\Url;
 use Drupal\migrate\MigrateMessageInterface;
 use Drupal\taxonomy\Entity\Term;
@@ -14,6 +15,7 @@ use Drupal\Tests\BrowserTestBase;
  */
 class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface {
   use BigCommerceTestTrait;
+  use StoreCreationTrait;
 
   /**
    * {@inheritdoc}
@@ -35,6 +37,7 @@ class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface 
       ->set('api.client_id', 'a client ID')
       ->set('api.client_secret', 'a client secret')
       ->save();
+    $this->createStore();
   }
 
   public function testSync() {

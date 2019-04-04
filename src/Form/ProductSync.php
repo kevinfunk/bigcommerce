@@ -4,6 +4,7 @@ namespace Drupal\bigcommerce\Form;
 
 use BigCommerce\Api\v3\Api\CatalogApi;
 use Drupal\bigcommerce\Batch\MigrateUpgradeImportBatch;
+use Drupal\bigcommerce\Exception\UnconfiguredException;
 use Drupal\bigcommerce\Plugin\migrate\source\BigCommerceSource;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Form\FormBase;
@@ -66,7 +67,7 @@ class ProductSync extends FormBase {
     try {
       $catalog_api = $container->get('bigcommerce.catalog');
     }
-    catch (\RuntimeException $e) {
+    catch (UnconfiguredException $e) {
       $catalog_api = NULL;
     }
     return new static(

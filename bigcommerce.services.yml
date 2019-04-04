@@ -1,7 +1,7 @@
 services:
   bigcommerce.client_factory:
     class: Drupal\bigcommerce\ClientFactory
-    arguments: ['@config.factory']
+    arguments: ['@config.factory', '@entity_type.manager']
   bigcommerce.cart:
     class: \BigCommerce\Api\v3\Api\CartApi
     factory: bigcommerce.client_factory:getCart

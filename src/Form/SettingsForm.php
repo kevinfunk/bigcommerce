@@ -11,9 +11,11 @@ use BigCommerce\Api\v3\Model\Site;
 use BigCommerce\Api\v3\Model\SiteCreateRequest;
 use Drupal\bigcommerce\ClientFactory;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RequestContext;
+use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -27,6 +29,11 @@ class SettingsForm extends ConfigFormBase {
   protected $requestContext;
 
   /**
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * SettingsForm constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -34,9 +41,10 @@ class SettingsForm extends ConfigFormBase {
    * @param \Drupal\Core\Routing\RequestContext $request_context
    *   The request context.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, RequestContext $request_context) {
+  public function __construct(ConfigFactoryInterface $config_factory, RequestContext $request_context, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($config_factory);
     $this->requestContext = $request_context;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -45,7 +53,8 @@ class SettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
-      $container->get('router.request_context')
+      $container->get('router.request_context'),
+      $container->get('entity_type.manager')
     );
   }
 
@@ -70,6 +79,14 @@ class SettingsForm extends ConfigFormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('bigcommerce.settings');
+
+    if (!$this->entityTypeManager->getStorage('commerce_store')->loadDefault()) {
+      $this->messenger()->addError(
+        $this->t(
+          'A default commerce store must exist before BigCommerce can be used. <a href=":create_store">Create a commerce store</a>.',
+          [':create_store' => Url::fromRoute('entity.commerce_store.add_page')->toString()])
+      );
+    }
 
     $form['connection_status'] = [
       '#type' => 'fieldset',

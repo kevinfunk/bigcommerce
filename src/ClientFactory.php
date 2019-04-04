@@ -8,7 +8,9 @@ use BigCommerce\Api\v3\Api\ChannelsApi;
 use BigCommerce\Api\v3\Api\SitesApi;
 use BigCommerce\Api\v3\ApiClient;
 use Drupal\bigcommerce\API\Configuration;
+use Drupal\bigcommerce\Exception\UnconfiguredException;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 
 /**
  * Create BigCommerce clients.
@@ -37,13 +39,23 @@ class ClientFactory {
   protected $configFactory;
 
   /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * ClientFactory constructor.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   Drupal config factory for getting API settings.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager) {
     $this->configFactory = $config_factory;
+    $this->entityTypeManager = $entity_type_manager;
   }
 
   /**
@@ -110,8 +122,12 @@ class ClientFactory {
     if (!$this->apiConfig) {
       $config = $this->configFactory->get('bigcommerce.settings');
       if (!$config->get('api.path')) {
-        throw new \RuntimeException('BigCommerce API is not configured');
+        throw new UnconfiguredException('BigCommerce API is not configured');
       }
+      if (!$this->entityTypeManager->getStorage('commerce_store')->loadDefault()) {
+        throw new UnconfiguredException('BigCommerce requires a default commerce store');
+      }
+
       $this->apiConfig = static::createApiConfiguration($config->get('api'));
     }
     return $this->apiConfig;
