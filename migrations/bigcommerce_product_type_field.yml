@@ -39,6 +39,8 @@ process:
     -
       plugin: skip_on_empty
       method: row
+  settings:
+      plugin: bigcommerce_field_settings
 destination:
   plugin: entity:field_storage_config
   destination_module: field

@@ -40,6 +40,8 @@ process:
     -
       plugin: skip_on_empty
       method: row
+  settings:
+    plugin: bigcommerce_field_settings
 destination:
   plugin: component_entity_form_display
   destination_module: commerce_product

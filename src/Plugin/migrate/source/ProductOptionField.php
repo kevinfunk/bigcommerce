@@ -46,17 +46,4 @@ class ProductOptionField extends ProductOption {
     }
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function prepareRow(Row $row) {
-    // If some fields requires special settings, process them.
-    $import_type = $row->getSourceProperty('import_type');
-    if ($row->hasSourceProperty($import_type . '_settings')) {
-      $settings = $row->getSourceProperty($import_type . '_settings');
-      $row->setDestinationProperty('settings', $settings);
-    }
-    return parent::prepareRow($row);
-  }
-
 }
