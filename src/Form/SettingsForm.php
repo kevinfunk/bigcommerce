@@ -116,15 +116,6 @@ class SettingsForm extends ConfigFormBase {
       '#required' => TRUE,
     ];
 
-    // Used with the client id to make API calls.
-    $form['api_settings']['access_token'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Access Token'),
-      '#description' => $this->t('The API Access Token from BigCommerce.'),
-      '#default_value' => $config->get('api.access_token'),
-      '#required' => TRUE,
-    ];
-
     // Used with the access token to make API calls.
     $form['api_settings']['client_id'] = [
       '#type' => 'textfield',
@@ -140,6 +131,15 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Client Secret'),
       '#description' => $this->t('The API Client ID from BigCommerce.'),
       '#default_value' => $config->get('api.client_secret'),
+    ];
+
+    // Used with the client id to make API calls.
+    $form['api_settings']['access_token'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Access Token'),
+      '#description' => $this->t('The API Access Token from BigCommerce.'),
+      '#default_value' => $config->get('api.access_token'),
+      '#required' => TRUE,
     ];
 
     $form['channel'] = [
