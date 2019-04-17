@@ -23,32 +23,3 @@ function bigcommerce_uninstall() {
     $migration->getIdMap()->destroy();
   }
 }
-
-/**
- * Implements hook_requirements().
- *
- * @param $phase
- *
- * @return array
- */
-function bigcommerce_requirements($phase) {
-  $messenger = Drupal::messenger();
-  $requirements = [];
-  if (Drupal::moduleHandler()->moduleExists('commerce')) {
-    if ($phase === 'install') {
-      $messenger->addMessage(
-        t('This module will conflict with Commerce Checkout as it also provides checkout.'),
-        $messenger::TYPE_WARNING
-      );
-    }
-    elseif ($phase === 'runtime') {
-      $requirements['conflict_with_commerce_checkout'] = [
-        'title' => t('Conflict with Commerce Checkout.'),
-        'description' => t("BigCommerce provides it's own checkout functionality which conflicts with Commerce Checkout."),
-        'value' => t("Uninstall Commerce Checkout to continue using BigCommerce"),
-        'severity' => REQUIREMENT_ERROR,
-      ];
-    }
-  }
-  return $requirements;
-}
