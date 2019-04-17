@@ -236,7 +236,7 @@ class SettingsForm extends ConfigFormBase {
       $channels = [];
     }
     $channels = array_filter($channels, function (Channel $channel) {
-      return $channel->getPlatform() === CreateChannelRequest::PLATFORM_WORDPRESS;
+      return $channel->getPlatform() === CreateChannelRequest::PLATFORM_DRUPAL;
     });
 
     $list = [];
@@ -310,9 +310,7 @@ class SettingsForm extends ConfigFormBase {
 
       $create_channel_request = new CreateChannelRequest();
       $create_channel_request->setType(CreateChannelRequest::TYPE_STOREFRONT);
-      // There currently isn't a Drupal platform listing, use wordpress for now.
-      // This will also require an update of the SDK.
-      $create_channel_request->setPlatform(CreateChannelRequest::PLATFORM_WORDPRESS);
+      $create_channel_request->setPlatform(CreateChannelRequest::PLATFORM_DRUPAL);
       $create_channel_request->setName($form_state->getValue('create_new_channel_name'));
 
       $response = $channel_api->createChannel($create_channel_request);
