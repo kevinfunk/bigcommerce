@@ -16,6 +16,7 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RequestContext;
 use Drupal\Core\Url;
+use Drupal\Component\Utility\Html;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -87,6 +88,10 @@ class SettingsForm extends ConfigFormBase {
           [':create_store' => Url::fromRoute('entity.commerce_store.add_page')->toString()])
       );
     }
+
+    $form['#wrapper_id'] = Html::getUniqueId('js-bigcommerce-settings');
+    $form['#prefix'] = '<div id="' . $form['#wrapper_id'] . '">';
+    $form['#suffix'] = '</div>';
 
     $form['connection_status'] = [
       '#type' => 'fieldset',
@@ -166,28 +171,37 @@ class SettingsForm extends ConfigFormBase {
       '#access' => !$has_channel_id,
     ];
 
-    $options = (bool) $config->get('api.path') ? $this->getChannels() : [];
+    $options = ['Create New Channel' => $this->t('Create New Channel')];
+    if ((bool) $config->get('api.path')) {
+      $options += $this->getChannels();
+    }
+
     $form['channel']['channel_select'] = [
       '#type' => 'select',
       '#options' => $options,
       '#default_value' => $has_channel_id ? $config->get('channel_id') : NULL,
       '#title' => $this->t('Select channel'),
-      '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
+      '#description' => $this->t('Channel you wish to pair with your Drupal site.'),
       '#access' => $config->get('api.path') && !empty($options),
       '#required' => TRUE,
+      '#ajax' => [
+        'callback' => [get_class($this), 'ajaxRefresh'],
+        'wrapper' => $form['#wrapper_id'],
+      ],
     ];
 
+    $new_channel = $form_state->getValue('channel_select') == 'Create New Channel' || !$has_channel_id;
     $form['channel']['create_new_channel_name'] = [
       '#type' => 'textfield',
       '#title' => $this->t('New Channel Name'),
       '#description' => $this->t('Channel Name from BigCommerce, user friendly tag used to identify 3rd party sales channels like Drupal or Amazon.'),
-      '#access' => (bool) $config->get('api.path'),
+      '#access' => $new_channel && (bool) $config->get('api.path'),
     ];
     $form['channel']['create_new_channel_submit'] = [
       '#type' => 'submit',
       '#value' => t('Create new BigCommerce channel'),
       '#submit' => ['::createNewChannel'],
-      '#access' => (bool) $config->get('api.path'),
+      '#access' => $new_channel && (bool) $config->get('api.path'),
     ];
 
     $site = $has_channel_id ? $this->getSiteForChannel($config->get('channel_id')) : NULL;
@@ -197,26 +211,26 @@ class SettingsForm extends ConfigFormBase {
       '#title' => $this->t('Site ID'),
       '#description' => $this->t('Site ID for BigCommerce, always attached to a channel and links to a specific URL.'),
       '#markup' => $site ? $site->getId() : '',
-      '#access' => $has_channel_id && $site,
+      '#access' => !$new_channel && $site,
     ];
     $form['channel']['site_url'] = [
       '#type' => 'item',
       '#title' => $this->t('Site URL'),
       '#description' => $this->t('Site URL for BigCommerce, must match your Drupal URL for the checkout to load.'),
       '#markup' => $site ? $site->getUrl() : '',
-      '#access' => $has_channel_id && $site,
+      '#access' => !$new_channel && $site,
     ];
     $form['channel']['update_site_url'] = [
       '#type' => 'submit',
       '#value' => t('Update BigCommerce Site URL'),
       '#submit' => ['::updateSiteUrl'],
-      '#access' => $has_channel_id && $site,
+      '#access' => !$new_channel && $site,
     ];
     $form['channel']['create_site'] = [
       '#type' => 'submit',
       '#value' => t('Create BigCommerce Site'),
       '#submit' => ['::setupSite'],
-      '#access' => $has_channel_id && !$site,
+      '#access' => !$new_channel && !$site,
     ];
 
     return parent::buildForm($form, $form_state);
@@ -251,13 +265,18 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->configFactory()->getEditable('bigcommerce.settings')
-      ->set('api.path', $form_state->getValue(['api_settings', 'path']))
+    $config = $this->configFactory()->getEditable('bigcommerce.settings');
+
+    $config->set('api.path', $form_state->getValue(['api_settings', 'path']))
       ->set('api.access_token', $form_state->getValue(['api_settings', 'access_token']))
       ->set('api.client_id', $form_state->getValue(['api_settings', 'client_id']))
-      ->set('api.client_secret', $form_state->getValue(['api_settings', 'client_secret']))
-      ->set('channel_id', $form_state->getValue(['channel_select']))
-      ->save();
+      ->set('api.client_secret', $form_state->getValue(['api_settings', 'client_secret']));
+
+    if ($form_state->getValue(['channel_select']) != 'Create New Channel') {
+      $config->set('channel_id', $form_state->getValue(['channel_select']));
+    }
+
+    $config->save();
 
     parent::submitForm($form, $form_state);
   }
@@ -426,6 +445,13 @@ class SettingsForm extends ConfigFormBase {
       }
     }
     return $site;
+  }
+
+  /**
+   * Ajax callback.
+   */
+  public static function ajaxRefresh(array $form, FormStateInterface $form_state) {
+    return $form;
   }
 
 }

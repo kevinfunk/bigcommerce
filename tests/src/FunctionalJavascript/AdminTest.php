@@ -80,6 +80,7 @@ class AdminTest extends WebDriverTestBase {
     $assert->fieldValueEquals('api_settings[client_id]', 'a client ID');
     $assert->fieldValueEquals('api_settings[client_secret]', 'a client secret');
     $page->selectFieldOption('channel_select', "Test channel");
+    $assert->assertWaitOnAjaxRequest();
     $this->htmlOutput();
     $page->findButton('Save configuration')->click();
     $this->htmlOutput();
@@ -89,13 +90,32 @@ class AdminTest extends WebDriverTestBase {
     $this->refreshVariables();
     $this->assertSame(14581, $this->config('bigcommerce.settings')->get('channel_id'));
 
+    // Test Create New Channel.
+    $page->selectFieldOption('channel_select', 'Create New Channel');
+    $assert->assertWaitOnAjaxRequest();
+    $assert->pageTextNotContains('Site ID');
+    $assert->pageTextNotContains('Site URL');
+    $assert->pageTextNotContains('Update BigCommerce Site URL');
+    $assert->pageTextContains('New Channel Name');
+    $page->fillField('api_settings[path]', $api_path);
+    $page->fillField('api_settings[access_token]', 'an access token');
+    $page->fillField('api_settings[client_id]', 'a client ID');
+    $page->fillField('api_settings[client_secret]', 'a client secret');
+    $page->fillField('create_new_channel_name', 'new test site');
+    $page->findButton('Create new BigCommerce channel')->click();
+    $assert->assertWaitOnAjaxRequest();
+    $assert->pageTextContains('Created new BigCommerce channel new test site');
+
     // Change to a stub with multiple channels.
+    $page->selectFieldOption('channel_select', "Test channel");
+    $assert->assertWaitOnAjaxRequest();
     $page->fillField('api_settings[path]', Url::fromUri('base://bigcommerce_stub/multiple_channels/')->setAbsolute()->toString());
     $page->findButton('Save configuration')->click();
     $this->htmlOutput();
     $assert->pageTextContains('Site ID 3');
     $assert->pageTextContains('Site URL http://my_commerce_site.com');
     $page->selectFieldOption('channel_select', "Another test channel");
+    $assert->assertWaitOnAjaxRequest();
     $page->findButton('Save configuration')->click();
     $this->htmlOutput();
     $assert->pageTextContains('Site ID 4');
