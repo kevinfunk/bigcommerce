@@ -125,7 +125,7 @@ class SettingsForm extends ConfigFormBase {
     $form['api_settings']['client_id'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Client ID'),
-      '#description' => $this->t('The API Client ID from BigCommerce.'),
+      '#description' => $this->t('The Client ID from BigCommerce.'),
       '#default_value' => $config->get('api.client_id'),
       '#required' => TRUE,
     ];
@@ -134,7 +134,7 @@ class SettingsForm extends ConfigFormBase {
     $form['api_settings']['client_secret'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Client Secret'),
-      '#description' => $this->t('The API Client ID from BigCommerce.'),
+      '#description' => $this->t('The Client Secret from BigCommerce.'),
       '#default_value' => $config->get('api.client_secret'),
     ];
 
@@ -142,7 +142,7 @@ class SettingsForm extends ConfigFormBase {
     $form['api_settings']['access_token'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Access Token'),
-      '#description' => $this->t('The API Access Token from BigCommerce.'),
+      '#description' => $this->t('The Access Token from BigCommerce.'),
       '#default_value' => $config->get('api.access_token'),
       '#required' => TRUE,
     ];

@@ -20,7 +20,8 @@ function bigcommerce_help($route_name, RouteMatchInterface $route_match) {
     case 'help.page.bigcommerce':
       $output = '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('The BigCommerce module allows users to integrate with <a href=":bigcommerce">BigCommerce</a>.', [':bigcommerce' => 'https://www.bigcommerce.com/']) . '</p>';
-      $output .= '<p>' . t('The module will allow you to leverage the obvious strengths of each platform: Drupal as the front-end CMS for customized UX, design, and content management (including display of intended BC content), and BigCommerce as the headless commerce engine.') . '</p>';
+      $output .= '<p>' . t('The module will allow you to leverage the obvious strengths of each platform: Drupal as the front-end CMS for customized UX, design, and content management (including display of intended BC content), and BigCommerce as the headless commerce engine. For more information, see the <a href=":documentation">online documentation for the BigCommerce module</a>.</p>', [':documentation' => 'https://www.drupal.org/docs/8/modules/bigcommerce']) . '</p>';
+
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('Synchronizing products') . '</dt>';
