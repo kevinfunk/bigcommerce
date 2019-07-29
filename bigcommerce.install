@@ -23,3 +23,22 @@ function bigcommerce_uninstall() {
     $migration->getIdMap()->destroy();
   }
 }
+
+/**
+ * Implements hook_requirements().
+ *
+ * @param $phase
+ *
+ * @return array
+ */
+function bigcommerce_requirements($phase) {
+  $requirements = [];
+  if (Drupal::moduleHandler()->moduleExists('commerce_checkout')) {
+    $requirements['bigcommerce_module_conflict'] = [
+      'title' => t('BigCommerce module conflict'),
+      'description' => t("BigCommerce provides its own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce."),
+      'severity' => REQUIREMENT_ERROR,
+    ];
+  }
+  return $requirements;
+}

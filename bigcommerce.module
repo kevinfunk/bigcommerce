@@ -113,3 +113,18 @@ function bigcommerce_entity_bundle_field_info(EntityTypeInterface $entity_type, 
   }
   return $definitions;
 }
+
+/**
+ * Implements hook_modules_installed().
+ */
+function bigcommerce_modules_installed($modules) {
+  // Note that via the UI we prevent BigCommerce being installed if Commerce
+  // Checkout already is. But it is impossible to do this the other way around
+  // and Drush also ignores hook_requirements.
+  // @see https://github.com/drush-ops/drush/issues/3669
+  if (\Drupal::moduleHandler()->moduleExists('commerce_checkout')) {
+    \Drupal::messenger()->addError(
+      t("BigCommerce provides its own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.")
+    );
+  }
+}
