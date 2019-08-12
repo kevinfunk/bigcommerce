@@ -44,11 +44,11 @@ class InstallTest extends BrowserTestBase {
     $this->drupalLogin($this->createUser(['administer modules', 'administer site configuration']));
     $edit = ["modules[commerce_checkout][enable]" => TRUE];
     $this->drupalPostForm('admin/modules', $edit, t('Install'));
-    $this->assertSession()->pageTextContains('BigCommerce provides it\'s own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.');
+    $this->assertSession()->pageTextContains('BigCommerce provides its own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.');
     $this->rebuildContainer();
     $this->assertTrue(\Drupal::moduleHandler()->moduleExists('commerce_checkout'), 'Commerce checkout module has been installed.');
     $this->drupalGet('admin/reports/status');
-    $this->assertSession()->pageTextContains('BigCommerce provides it\'s own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.');
+    $this->assertSession()->pageTextContains('BigCommerce provides its own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.');
 
     $edit = ['uninstall[bigcommerce]' => TRUE];
     $this->drupalPostForm('admin/modules/uninstall', $edit, t('Uninstall'));
@@ -61,7 +61,7 @@ class InstallTest extends BrowserTestBase {
     $this->drupalPostForm('admin/modules', $edit, t('Install'));
     $this->rebuildContainer();
     $this->assertFalse(\Drupal::moduleHandler()->moduleExists('bigcommerce'), 'BigCommerce module has been installed.');
-    $this->assertSession()->pageTextContains('BigCommerce provides it\'s own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.');
+    $this->assertSession()->pageTextContains('BigCommerce provides its own checkout functionality which conflicts with Commerce Checkout. Ensure Commerce Checkout is uninstalled before using BigCommerce.');
   }
 
 }
