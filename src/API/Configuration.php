@@ -10,6 +10,8 @@ use BigCommerce\Api\v3\Configuration as BigCommerceConfiguration;
 class Configuration extends BigCommerceConfiguration {
   protected $clientId;
   protected $clientSecret;
+  protected $drupalVersion;
+  protected $pluginVersion;
 
   /**
    * Gets the BigCommerce API client id, used for API calls.
@@ -58,12 +60,42 @@ class Configuration extends BigCommerceConfiguration {
   }
 
   /**
+   * Sets the Drupal version.
+   *
+   * @param string $version
+   *   Takes a string of the format 'x.y.z', normally populated with
+   *   /Drupal:Version.
+   *
+   * @return $this
+   */
+  public function setDrupalVersion($version) {
+    $this->drupalVersion = $version;
+    return $this;
+  }
+
+  /**
+   * Sets the BigCommerce module version.
+   *
+   * @param string $version
+   *   Takes a string of the format '8.x-1.y'.
+   *
+   * @return $this
+   */
+  public function setPluginVersion($version) {
+    $this->pluginVersion = $version;
+    return $this;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getDefaultHeaders() {
     return array_merge($this->defaultHeaders, [
       'X-Auth-Client' => $this->clientId,
       'X-Auth-Token'  => $this->accessToken,
+      'X-Client-Type' => 'Drupal',
+      'X-Client-Version' => $this->drupalVersion,
+      'X-Plugin-Version' => $this->pluginVersion,
     ]);
   }
 

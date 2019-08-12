@@ -23,7 +23,7 @@ use Drupal\migrate\MigrateExecutable;
  * - remove onPostImport event listener
  * - remove special case for entity:file
  * - change logger channel
- * - change messages to be appropriate
+ * - change messages to be appropriate.
  *
  * @see \Drupal\migrate_drupal_ui\Batch\MigrateUpgradeImportBatch
  */
@@ -51,9 +51,9 @@ class MigrateUpgradeImportBatch {
   /**
    * The maximum length in seconds to allow processing in a request.
    *
-   * @see self::run()
-   *
    * @var int
+   *
+   * @see self::run()
    */
   protected static $maxExecTime;
 
@@ -72,7 +72,7 @@ class MigrateUpgradeImportBatch {
    * @param array $context
    *   The batch context.
    */
-  public static function run($initial_ids, &$context) {
+  public static function run(array $initial_ids, array &$context) {
     if (!static::$listenersAdded) {
       $event_dispatcher = \Drupal::service('event_dispatcher');
       $event_dispatcher->addListener(MigrateEvents::POST_ROW_SAVE, [static::class, 'onPostRowSave']);
@@ -194,10 +194,10 @@ class MigrateUpgradeImportBatch {
         $migration = \Drupal::service('plugin.manager.migration')->createInstance($migration_id);
         $migration_name = $migration->label() ? $migration->label() : $migration_id;
         $context['message'] = (string) new TranslatableMarkup('Currently synchronizing @migration (@current of @max total tasks)', [
-            '@migration' => $migration_name,
-            '@current' => $context['sandbox']['current'],
-            '@max' => $context['sandbox']['max'],
-          ]) . "<br />\n" . $context['message'];
+          '@migration' => $migration_name,
+          '@current' => $context['sandbox']['current'],
+          '@max' => $context['sandbox']['max'],
+        ]) . "<br />\n" . $context['message'];
       }
     }
     else {
@@ -220,7 +220,7 @@ class MigrateUpgradeImportBatch {
    * @param string $elapsed
    *   The time to run the batch.
    */
-  public static function finished($success, $results, $operations, $elapsed) {
+  public static function finished($success, array $results, array $operations, $elapsed) {
     $successes = $results['successes'];
     $failures = $results['failures'];
 

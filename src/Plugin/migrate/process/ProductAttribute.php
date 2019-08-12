@@ -25,7 +25,6 @@ class ProductAttribute extends MigrationLookup {
     foreach ($option_values_ids as $option_values_id) {
       // TODO: Modify Product Attribute migration to use fieldname rather than
       // TODO: using the field source Name.
-
       $attribute_value_migration = $this->migrationPluginManager->createInstance('bigcommerce_product_attribute_value');
       $attribute_id = $attribute_value_migration->getIdMap()
         ->lookupDestinationId(['id' => $option_values_id]);

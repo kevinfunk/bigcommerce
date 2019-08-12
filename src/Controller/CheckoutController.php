@@ -50,6 +50,10 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
+   * @param \Drupal\commerce_cart\CartProviderInterface $cartProvider
+   *   The cart provider.
+   * @param \Drupal\commerce_cart\CartSessionInterface $cartSession
+   *   The cart session.
    */
   public function __construct(ConfigFactoryInterface $config_factory, CartProviderInterface $cartProvider, CartSessionInterface $cartSession) {
     $this->config = $config_factory->get('bigcommerce.settings');
@@ -83,7 +87,7 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
 
     $page = [
       '#type' => 'container',
-      // '#theme' => 'bigcommerce_checkout',
+      // '#theme' => 'bigcommerce_checkout',.
       '#attached' => [
         'library' => [
           'bigcommerce/checkout',

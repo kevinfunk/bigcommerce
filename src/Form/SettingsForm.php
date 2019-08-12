@@ -25,11 +25,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class SettingsForm extends ConfigFormBase {
 
   /**
+   * Request context.
+   *
    * @var \Drupal\Core\Routing\RequestContext
    */
   protected $requestContext;
 
   /**
+   * Entity Type Manager.
+   *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
@@ -41,6 +45,8 @@ class SettingsForm extends ConfigFormBase {
    *   The factory for configuration objects.
    * @param \Drupal\Core\Routing\RequestContext $request_context
    *   The request context.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    */
   public function __construct(ConfigFactoryInterface $config_factory, RequestContext $request_context, EntityTypeManagerInterface $entity_type_manager) {
     parent::__construct($config_factory);
@@ -373,7 +379,8 @@ class SettingsForm extends ConfigFormBase {
         $site_create_request->setChannelId($config->get('channel_id'));
         $site_create_request->setUrl(rtrim($this->requestContext->getCompleteBaseUrl(), '/'));
 
-        // The API lists both passing the channel id and adding it as a parameter.
+        // The API lists both passing the channel id and adding it as a
+        // parameter.
         $sites_api->postChannelSite($config->get('channel_id'), $site_create_request);
       }
       catch (\Exception $e) {
@@ -419,7 +426,7 @@ class SettingsForm extends ConfigFormBase {
   /**
    * Gets a BigCommerce Site object for the specified channel.
    *
-   * @param $channel_id
+   * @param int $channel_id
    *   The channel ID to get the site for.
    * @param bool $throw_exception
    *   (optional) Whether to throw an exception on error. Defaults to FALSE.

@@ -13,6 +13,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class SyncSubscriber implements EventSubscriberInterface {
 
   /**
+   * Key Value.
+   *
    * @var \Drupal\Core\KeyValueStore\KeyValueFactoryInterface
    */
   protected $keyValue;
@@ -21,6 +23,7 @@ class SyncSubscriber implements EventSubscriberInterface {
    * SyncSubscriber constructor.
    *
    * @param \Drupal\Core\KeyValueStore\KeyValueFactoryInterface $keyValue
+   *   Key value factory.
    */
   public function __construct(KeyValueFactoryInterface $keyValue) {
     $this->keyValue = $keyValue;

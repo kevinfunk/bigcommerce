@@ -144,13 +144,16 @@ class ClientFactory {
    *   and client secret.
    */
   public static function createApiConfiguration(array $settings) {
+    $module_version = \Drupal::service('extension.list.module')->getExtensionInfo('bigcommerce')['version'] ?? 'dev';
     $api_config = new Configuration();
     $api_config
       ->setHost(rtrim($settings['path'], '/\\'))
       ->setClientId($settings['client_id'])
       ->setAccessToken($settings['access_token'])
       ->setClientSecret($settings['client_secret'])
-      ->setCurlTimeout($settings['timeout'] ?? 15);
+      ->setCurlTimeout($settings['timeout'] ?? 15)
+      ->setDrupalVersion(\Drupal::VERSION)
+      ->setPluginVersion($module_version);
     // Supporting testing the API with a stub.
     if ($test_prefix = drupal_valid_test_ua()) {
       $api_config->setUserAgent(drupal_generate_test_ua($test_prefix));

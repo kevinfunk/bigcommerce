@@ -41,6 +41,8 @@ class ProductSync extends FormBase {
   protected $keyValue;
 
   /**
+   * BigCommerce Catalog API.
+   *
    * @var \BigCommerce\Api\v3\Api\CatalogApi|null
    */
   protected $catalogApi = NULL;
@@ -49,9 +51,13 @@ class ProductSync extends FormBase {
    * ProductSync constructor.
    *
    * @param \Drupal\migrate\Plugin\MigrationPluginManagerInterface $migrationPluginManager
+   *   Migration plugin manager.
    * @param \Drupal\Core\Datetime\DateFormatterInterface $dateFormatter
+   *   Date formatter.
    * @param \Drupal\Core\KeyValueStore\KeyValueFactoryInterface $keyValue
+   *   Key Value store.
    * @param \BigCommerce\Api\v3\Api\CatalogApi|null $catalogApi
+   *   BigCommerce Catalog API.
    */
   public function __construct(MigrationPluginManagerInterface $migrationPluginManager, DateFormatterInterface $dateFormatter, KeyValueFactoryInterface $keyValue, CatalogApi $catalogApi = NULL) {
     $this->migrationPluginManager = $migrationPluginManager;
@@ -244,6 +250,7 @@ class ProductSync extends FormBase {
    * Gets all the migrations for BigCommerce syncing.
    *
    * @return \Drupal\migrate\Plugin\MigrationInterface[]
+   *   Migration Inteface array.
    *
    * @throws \Drupal\Component\Plugin\Exception\PluginException
    */
