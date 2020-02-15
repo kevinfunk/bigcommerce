@@ -20,10 +20,15 @@ class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface 
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'bigcommerce',
     'bigcommerce_test',
   ];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}

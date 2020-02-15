@@ -22,6 +22,11 @@ class ProductSyncUiTest extends CommerceBrowserTestBase {
   ];
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Test cart.
    */
   public function testProductSyncUi() {

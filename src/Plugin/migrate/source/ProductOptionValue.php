@@ -51,7 +51,7 @@ class ProductOptionValue extends ProductOption {
    */
   public function prepareRow(Row $row) {
     $migration = $this->migration;
-    $process = $migration->get('process');
+    $process = $migration->getProcess();
 
     // Clear fields process so we do not map fields which aren't available.
     foreach (array_keys($process) as $field_name) {

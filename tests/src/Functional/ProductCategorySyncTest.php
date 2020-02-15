@@ -20,10 +20,15 @@ class ProductCategorySyncTest extends BrowserTestBase implements MigrateMessageI
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'bigcommerce',
     'bigcommerce_test',
   ];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}

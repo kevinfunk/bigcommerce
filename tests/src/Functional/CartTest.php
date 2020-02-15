@@ -35,6 +35,11 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
   /**
    * {@inheritdoc}
    */
+  protected $defaultTheme = 'stark';
+
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp() {
     parent::setUp();
     $this->cart = $this->container->get('commerce_cart.cart_provider')->createCart('default');

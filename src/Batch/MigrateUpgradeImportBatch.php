@@ -255,7 +255,7 @@ class MigrateUpgradeImportBatch {
    */
   public static function onPostRowSave(MigratePostRowSaveEvent $event) {
     // We want to interrupt this batch and start a fresh one.
-    if ((time() - REQUEST_TIME) > static::$maxExecTime) {
+    if ((time() - \Drupal::time()->getRequestTime()) > static::$maxExecTime) {
       $event->getMigration()->interruptMigration(MigrationInterface::RESULT_INCOMPLETE);
     }
   }
@@ -268,7 +268,7 @@ class MigrateUpgradeImportBatch {
    */
   public static function onPostRowDelete(MigrateRowDeleteEvent $event) {
     // We want to interrupt this batch and start a fresh one.
-    if ((time() - REQUEST_TIME) > static::$maxExecTime) {
+    if ((time() - \Drupal::time()->getRequestTime()) > static::$maxExecTime) {
       $event->getMigration()->interruptMigration(MigrationInterface::RESULT_INCOMPLETE);
     }
   }

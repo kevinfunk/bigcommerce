@@ -24,9 +24,7 @@ class CommerceProductType extends EntityConfigBase {
   public function import(Row $row, array $old_destination_id_values = []) {
     if ($ret = parent::import($row, $old_destination_id_values)) {
       $product_type = ProductType::load($row->getDestinationProperty('id'));
-      commerce_product_add_stores_field($product_type);
       commerce_product_add_body_field($product_type);
-      commerce_product_add_variations_field($product_type);
     }
     return $ret;
   }

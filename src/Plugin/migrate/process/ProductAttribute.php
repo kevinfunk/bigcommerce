@@ -78,8 +78,9 @@ class ProductAttribute extends ProcessPluginBase implements ContainerFactoryPlug
       // TODO: using the field source Name.
       $attribute_value_migration = $this->migrationPluginManager->createInstance('bigcommerce_product_attribute_value');
       $attribute_id = $attribute_value_migration->getIdMap()
-        ->lookupDestinationId(['id' => $option_values_id]);
+        ->lookupDestinationIds(['id' => $option_values_id]);
       if ($attribute_id) {
+        $attribute_id = reset($attribute_id);
         $attribute_value = \Drupal::entityTypeManager()
           ->getStorage('commerce_product_attribute_value')
           ->load($attribute_id[0]);

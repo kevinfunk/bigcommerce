@@ -39,7 +39,7 @@ trait BigCommerceTestTrait {
       // This is possibly a base plugin ID and we want to run all derivatives.
       $instances = $manager->createInstances($id);
       array_walk($instances, function (MigrationInterface $migration) use (&$executed_migrations) {
-        $required_migrations = $migration->get('requirements');
+        $required_migrations = $migration->getMigrationDependencies()['required'];
         $required_migrations = array_filter($required_migrations, function ($value) use (&$executed_migrations) {
           return !isset($executed_migrations[$value]);
         });

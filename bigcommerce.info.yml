@@ -6,7 +6,7 @@ package: Commerce
 configure: bigcommerce.configuration
 dependencies:
   - color_field:color_field
-  - commerce:commerce_product
+  - commerce:commerce_product (>=2.16)
   - commerce:commerce_cart
   - drupal:migrate
   - drupal:taxonomy

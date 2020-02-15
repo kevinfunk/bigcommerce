@@ -27,6 +27,11 @@ class ClientFactoryTest extends BrowserTestBase {
   ];
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Tests.
    */
   public function testClientFactory() {
