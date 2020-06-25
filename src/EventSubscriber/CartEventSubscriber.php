@@ -3,8 +3,8 @@
 namespace Drupal\bigcommerce\EventSubscriber;
 
 use BigCommerce\Api\v3\Model\CartUpdateRequest;
+use Drupal\commerce_cart\Event\CartEmptyEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Drupal\commerce_cart\Event\CartEntityDeleteEvent;
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
@@ -58,10 +58,10 @@ class CartEventSubscriber implements EventSubscriberInterface {
   /**
    * Delete BigCommerce cart.
    *
-   * @param \Drupal\commerce_cart\Event\CartEntityDeleteEvent $event
-   *   The add to cart event.
+   * @param \Drupal\commerce_cart\Event\CartEmptyEvent $event
+   *   The cart empty event.
    */
-  public function bigCommerceCartDelete(CartEntityDeleteEvent $event) {
+  public function bigCommerceCartDelete(CartEmptyEvent $event) {
     try {
       $order = $event->getCart();
       $bc_cart_id = $order->getData('bigcommerce_cart_id');
