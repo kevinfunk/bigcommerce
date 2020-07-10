@@ -1,0 +1,8 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - bigcommerce_stock
+id: bigcommerce
+label: BigCommerce

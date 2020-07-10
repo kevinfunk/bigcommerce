@@ -27,6 +27,8 @@ class ProductVariation extends Product {
       $response = $this->getSourceResponse($params);
       foreach ($response->getData() as $product) {
         foreach ($product->getVariants() as $variant) {
+          // The bigcommerce stock module uses the stock value from the variant
+          // data.
           $variant = $variant->get();
           $variant['product_name'] = $product->getName();
           $variant['type'] = $product->getType();

@@ -1,0 +1,6 @@
+services:
+  bigcommerce_stock.variation_stock_update:
+    class: Drupal\bigcommerce_stock\EventSubscriber\VariationStockUpdateSubscriber
+    arguments: ['@entity_type.manager', '@commerce_stock.local_stock_checker', '@commerce_stock.local_stock_updater']
+    tags:
+      - { name: event_subscriber }

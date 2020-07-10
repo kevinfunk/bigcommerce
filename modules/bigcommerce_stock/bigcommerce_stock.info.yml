@@ -7,3 +7,4 @@ dependencies:
   - bigcommerce:bigcommerce
   - commerce_stock:commerce_stock
   - commerce_stock:commerce_stock_local
+  - migrate_plus:migrate_plus
