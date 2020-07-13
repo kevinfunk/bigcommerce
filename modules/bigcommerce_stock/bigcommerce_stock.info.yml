@@ -3,6 +3,7 @@ type: module
 description: Allows users to automatically synchronize BigCommerce product inventories with Drupal.
 core: 8.x
 package: Commerce
+configure: bigcommerce_stock.settings
 dependencies:
   - bigcommerce:bigcommerce
   - commerce_stock:commerce_stock

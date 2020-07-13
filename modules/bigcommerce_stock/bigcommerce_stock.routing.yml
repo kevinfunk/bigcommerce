@@ -1,0 +1,15 @@
+bigcommerce_stock.settings:
+  path: '/admin/commerce/config/bigcommerce/stock-settings'
+  defaults:
+    _form: '\Drupal\bigcommerce_stock\Form\WebhookSettingsForm'
+    _title: 'BigCommerce Stock Settings'
+  requirements:
+    _permission: 'access bigcommerce administration pages'
+
+bigcommerce_stock.webhook_listener:
+  path: '/bigcommerce-stock/webhook'
+  defaults:
+    _controller: '\Drupal\bigcommerce_stock\Controller\WebhookController::listener'
+    _title: 'BigCommerce stock webhook notification listener'
+  requirements:
+    _custom_access: '\Drupal\bigcommerce_stock\Controller\WebhookController::access'

@@ -1,0 +1,5 @@
+bigcommerce_stock.settings:
+  title: 'BigCommerce Stock settings'
+  route_name: 'bigcommerce_stock.settings'
+  description: 'Configure Bigcommerce Stock'
+  parent: 'bigcommerce.configuration'
