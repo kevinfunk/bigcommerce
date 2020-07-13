@@ -1,0 +1,9 @@
+bigcommerce_stock.webhook_settings:
+  title: 'Order item quantity'
+  route_name: bigcommerce_stock.order_item_quantity_settings
+  base_route: bigcommerce_stock.settings
+
+bigcommerce_stock.order_item_quantity_settings:
+  title: 'Webhook Settings'
+  route_name: bigcommerce_stock.settings
+  base_route: bigcommerce_stock.settings

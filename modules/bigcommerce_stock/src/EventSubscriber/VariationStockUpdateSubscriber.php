@@ -2,9 +2,15 @@
 
 namespace Drupal\bigcommerce_stock\EventSubscriber;
 
+use Drupal\commerce_cart\Event\CartEntityAddEvent;
+use Drupal\commerce_cart\Event\CartEvents;
+use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
+use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_stock\StockCheckInterface;
 use Drupal\commerce_stock\StockUpdateInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -15,6 +21,8 @@ use Drupal\migrate_plus\Event\MigrateEvents as MigratePlugMigrateEvents;
  * Class VariationStockUpdateSubscriber.
  */
 class VariationStockUpdateSubscriber implements EventSubscriberInterface {
+
+  use MessengerTrait;
 
   /**
    * The entity type manager.
@@ -38,6 +46,13 @@ class VariationStockUpdateSubscriber implements EventSubscriberInterface {
   protected $stockUpdater;
 
   /**
+   * Config Factory Service Object.
+   *
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
    * VariationStockUpdateSubscriber constructor.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -46,11 +61,14 @@ class VariationStockUpdateSubscriber implements EventSubscriberInterface {
    *   The stock checker.
    * @param \Drupal\commerce_stock\StockUpdateInterface $stock_updater
    *   The stock updater.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The config factory.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager, StockCheckInterface $stock_checker, StockUpdateInterface $stock_updater) {
+  public function __construct(EntityTypeManagerInterface $entity_type_manager, StockCheckInterface $stock_checker, StockUpdateInterface $stock_updater, ConfigFactoryInterface $config_factory) {
     $this->entityTypeManager = $entity_type_manager;
     $this->stockChecker = $stock_checker;
     $this->stockUpdater = $stock_updater;
+    $this->configFactory = $config_factory;
   }
 
   /**
@@ -63,6 +81,11 @@ class VariationStockUpdateSubscriber implements EventSubscriberInterface {
 
     // We need a separate event for the migration running for the first time.
     $events[MigrateEvents::POST_ROW_SAVE][] = ['updateVariationStock'];
+
+    // Setting the weight so this event fires before bigCommerceAddToCart.
+    $events[CartEvents::CART_ENTITY_ADD][] = ['enforceStockValueOnAdd', 100];
+    $events[CartEvents::CART_ORDER_ITEM_UPDATE][] = ['enforceStockValueOnUpdate', 100];
+
     return $events;
   }
 
@@ -111,6 +134,67 @@ class VariationStockUpdateSubscriber implements EventSubscriberInterface {
       $latest_txn = $this->stockChecker->getLocationStockTransactionLatest($location->id(), $variation);
       $this->stockUpdater
         ->setLocationStockLevel($location->id(), $variation, $inventory_level, $latest_txn);
+    }
+  }
+
+  /**
+   * Enforcing maximum and minimum order item quantity for the add event.
+   *
+   * @param \Drupal\commerce_cart\Event\CartEntityAddEvent $event
+   *   The add to cart event.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function enforceStockValueOnAdd(CartEntityAddEvent $event) {
+    $added_order_item = $event->getOrderItem();
+    $this->enforceStockValue($added_order_item);
+  }
+
+  /**
+   * Enforcing maximum and minimum order item quantity for the update event.
+   *
+   * @param \Drupal\commerce_cart\Event\CartOrderItemUpdateEvent $event
+   *   The add to cart event.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function enforceStockValueOnUpdate(CartOrderItemUpdateEvent $event) {
+    $updated_order_item = $event->getOrderItem();
+    $this->enforceStockValue($updated_order_item);
+  }
+
+  /**
+   * Enforcing maximum and minimum order item quantity.
+   *
+   * @param \Drupal\commerce_order\Entity\OrderItemInterface $order_item
+   *   The order item to check.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  protected function enforceStockValue(OrderItemInterface $order_item) {
+    if (!$this->configFactory->get('bigcommerce_stock.order_item_quantity')->get('order_item_quantity_global')) {
+      return;
+    }
+
+    $maximum = $this->configFactory->get('bigcommerce_stock.order_item_quantity')->get('order_item_quantity_maximum');
+    $minimum = $this->configFactory->get('bigcommerce_stock.order_item_quantity')->get('order_item_quantity_minimum');
+
+    if ($order_item->getQuantity() > $maximum) {
+      $order_item->setQuantity((string) $maximum);
+      $order_item->save();
+      $this->messenger()->addWarning(t('Maximum allowed quantity is @max, changing @product quantity to the maximum allowed value.', [
+        '@max' => $maximum,
+        '@product' => $order_item->getPurchasedEntity()->getOrderItemTitle(),
+      ]));
+    }
+
+    if ($order_item->getQuantity() < $minimum) {
+      $order_item->setQuantity((string) $minimum);
+      $order_item->save();
+      $this->messenger()->addWarning(t('Minimum allowed quantity is @min, changing @product quantity to the minimum allowed value.', [
+        '@min' => $minimum,
+        '@product' => $order_item->getPurchasedEntity()->getOrderItemTitle(),
+      ]));
     }
   }
 

@@ -13,3 +13,11 @@ bigcommerce_stock.webhook_listener:
     _title: 'BigCommerce stock webhook notification listener'
   requirements:
     _custom_access: '\Drupal\bigcommerce_stock\Controller\WebhookController::access'
+
+bigcommerce_stock.order_item_quantity_settings:
+  path: '/admin/commerce/config/bigcommerce/order-item-quantity-settings'
+  defaults:
+    _form: '\Drupal\bigcommerce_stock\Form\OrderItemQuantityForm'
+    _title: 'BigCommerce Stock Settings'
+  requirements:
+    _permission: 'access bigcommerce administration pages'
