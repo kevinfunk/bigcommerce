@@ -112,7 +112,8 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
 
     }
     catch (\Exception $e) {
-
+      $this->getLogger('bigcommerce.checkout_controller')
+        ->error($e->getMessage());
     }
 
     $page['#attached']['drupalSettings']['bigCommerceCheckoutUrl'] = $urls->getEmbeddedCheckoutUrl();

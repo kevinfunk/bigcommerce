@@ -3,6 +3,7 @@
 namespace Drupal\bigcommerce\Plugin\migrate\source;
 
 use BigCommerce\Api\v3\ApiException;
+use Drupal\Core\Logger\LoggerChannelTrait;
 
 /**
  * Gets all Product Options from BigCommerce API.
@@ -12,6 +13,8 @@ use BigCommerce\Api\v3\ApiException;
  * )
  */
 class ProductOption extends BigCommerceSource {
+
+  use LoggerChannelTrait;
 
   /**
    * {@inheritdoc}
@@ -99,9 +102,13 @@ class ProductOption extends BigCommerceSource {
         $data = $this->catalogApi->getApiClient()->getSerializer()->deserialize($e->getResponseBody(), '\BigCommerce\Api\v3\Model\OptionCollectionResponse', $e->getResponseHeaders());
         $e->setResponseObject($data);
       }
-      throw $e;
+      $response_body = $e->getResponseBody();
+      $this->getLogger('bigcommerce.product_options')
+        ->error('[@status] @message', [
+          '@status' => $response_body->status,
+          '@message' => $response_body->title,
+        ]);
     }
-
   }
 
   /**

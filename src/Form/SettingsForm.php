@@ -255,6 +255,11 @@ class SettingsForm extends ConfigFormBase {
     catch (ApiException $e) {
       $channels = [];
     }
+    catch (\Exception $e) {
+      $this->getLogger('bigcommerce.settings_form')
+        ->error($e->getMessage());
+      $channels = [];
+    }
     $channels = array_filter($channels, function (Channel $channel) {
       return $channel->getPlatform() === CreateChannelRequest::PLATFORM_DRUPAL;
     });
@@ -428,17 +433,11 @@ class SettingsForm extends ConfigFormBase {
    *
    * @param int $channel_id
    *   The channel ID to get the site for.
-   * @param bool $throw_exception
-   *   (optional) Whether to throw an exception on error. Defaults to FALSE.
    *
    * @return \BigCommerce\Api\v3\Model\Site|null
    *   The BigCommerce Site object.
-   *
-   * @throws \BigCommerce\Api\v3\ApiException
-   *   Exception thrown if $throw_exception is TRUE and there is problem
-   *   communicating with BigCommerce.
    */
-  protected function getSiteForChannel($channel_id, $throw_exception = FALSE) {
+  protected function getSiteForChannel($channel_id) {
     $site = NULL;
     /** @var \BigCommerce\Api\v3\Api\SitesApi $sites_api */
     $sites_api = \Drupal::service('bigcommerce.sites');
@@ -447,9 +446,14 @@ class SettingsForm extends ConfigFormBase {
       $site = $response->getData();
     }
     catch (ApiException $e) {
-      if ($throw_exception) {
-        throw $e;
-      }
+      $response_body = $e->getResponseBody();
+      $this->getLogger('bigcommerce.settings_form')
+        ->error('[@status] @message', [
+          '@status' => $response_body->status,
+          '@message' => $response_body->title,
+        ]);
+
+      $this->messenger()->addError($response_body->title);
     }
     return $site;
   }

@@ -2,8 +2,11 @@
 
 namespace Drupal\bigcommerce\EventSubscriber;
 
+use BigCommerce\Api\v3\ApiException;
 use BigCommerce\Api\v3\Model\CartUpdateRequest;
 use Drupal\commerce_cart\Event\CartEmptyEvent;
+use Drupal\Core\Logger\LoggerChannelTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
@@ -21,6 +24,9 @@ use BigCommerce\Api\v3\Model\Cart;
  * Event Subscriber to handle syncing the Commerce and BigCommerce carts.
  */
 class CartEventSubscriber implements EventSubscriberInterface {
+
+  use MessengerTrait;
+  use LoggerChannelTrait;
 
   /**
    * The BigCommerce API settings.
@@ -70,9 +76,35 @@ class CartEventSubscriber implements EventSubscriberInterface {
         $this->cartApi->cartsCartIdDelete($bc_cart_id);
       }
     }
+    catch (\InvalidArgumentException $e) {
+      $response_body = $e->getResponseBody();
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error('[@status] @message', [
+          '@status' => $response_body->status,
+          '@message' => $response_body->errors->id,
+        ]);
+    }
+    catch (ApiException $e) {
+      $response_body = $e->getResponseBody();
+      if ($response_body->status === 404) {
+        $this->getLogger('bigcommerce.cart_event_subscriber')
+          ->warning('[@status] @message', [
+            '@status' => $response_body->status,
+            '@message' => $response_body->errors->id,
+          ]);
+      }
+      else {
+        $this->getLogger('bigcommerce.cart_event_subscriber')
+          ->error('[@status] @message', [
+            '@status' => $response_body->status,
+            '@message' => $response_body->errors->id,
+          ]);
+      }
+
+    }
     catch (\Exception $e) {
-      // Watchdog? not sure what we should do here.
-      throw $e;
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error($e->getMessage());
     }
   }
 
@@ -137,9 +169,29 @@ class CartEventSubscriber implements EventSubscriberInterface {
 
       $this->crossCheckCart($order, $bc_cart);
     }
+    catch (ApiException $e) {
+      $response_body = $e->getResponseBody();
+      if ($response_body->status === 422) {
+        // Exceptions with 422 status look informative for the user.
+        $this->messenger()->addError($response_body->title);
+      }
+      else {
+        $this->messenger()->addError(t('There was an error with the BigCommerce API.'));
+      }
+
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error('[@status] @message', [
+          '@status' => $response_body->status,
+          '@message' => $response_body->title,
+        ]);
+
+      $event->getCart()->removeItem($order_item);
+      $order_item->delete();
+    }
     catch (\Exception $e) {
-      // Watchdog? not sure what we should do here.
-      throw $e;
+      $this->messenger()->addError(t('There was an issue adding the item to the cart.'));
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error($e->getMessage());
     }
   }
 
@@ -168,9 +220,32 @@ class CartEventSubscriber implements EventSubscriberInterface {
         $this->cartApi->cartsCartIdItemsItemIdPut($bc_cart_id, $bc_item_id, $request_data);
       }
     }
+    catch (ApiException $e) {
+      $response_body = $e->getResponseBody();
+      if ($response_body->status === 422) {
+        // Exceptions with 422 status look informative for the user.
+        $this->messenger()->addError($response_body->title);
+      }
+      else {
+        $this->messenger()->addError(t('There was an error with the BigCommerce API.'));
+      }
+
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error('[@status] @message', [
+          '@status' => $response_body->status,
+          '@message' => $response_body->title,
+        ]);
+
+      // Reverting to the original values since the update failed.
+      $event->getOriginalOrderItem()->save();
+    }
     catch (\Exception $e) {
-      // Watchdog? not sure what we should do here.
-      throw $e;
+      $this->messenger()->addError(t('Failed to update the cart.'));
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error($e->getMessage());
+
+      // Reverting to the original values since the update failed.
+      $event->getOriginalOrderItem()->save();
     }
   }
 
@@ -192,8 +267,8 @@ class CartEventSubscriber implements EventSubscriberInterface {
       }
     }
     catch (\Exception $e) {
-      // Watchdog? not sure what we should do here.
-      throw $e;
+      $this->getLogger('bigcommerce.cart_event_subscriber')
+        ->error($e->getMessage());
     }
   }
 
@@ -254,7 +329,13 @@ class CartEventSubscriber implements EventSubscriberInterface {
           continue 2;
         }
       }
-      $this->cartApi->cartsCartIdItemsItemIdDelete($bc_cart_id, $bc_line_item->getId());
+      try {
+        $this->cartApi->cartsCartIdItemsItemIdDelete($bc_cart_id, $bc_line_item->getId());
+      }
+      catch (\Exception $e) {
+        $this->getLogger('bigcommerce.cart_event_subscriber')
+          ->error($e->getMessage());
+      }
     }
   }
 
