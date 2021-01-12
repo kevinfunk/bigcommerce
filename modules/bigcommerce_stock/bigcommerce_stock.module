@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_stock_local\Entity\StockLocation;
 use Drupal\Core\Url;
 
@@ -25,4 +26,37 @@ function bigcommerce_stock_install($is_syncing) {
   \Drupal::messenger()->addWarning(t('Please make sure to run the bigcommerce_product_variation migration again from the <a href=":link">BigCommerce Product synchronization</a> page to get the initial stock values.', [
     ':link' => Url::fromRoute('bigcommerce.product_sync')->toString(),
   ]));
+}
+
+/**
+ * Implements hook_cron().
+ */
+function bigcommerce_stock_cron() {
+  \Drupal::service('bigcommerce_stock.cron')->run();
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function bigcommerce_stock_commerce_order_delete(OrderInterface $order) {
+  // In case a cart is deleted remove all reserved stock.
+  if (empty($order->cart->value)) {
+    return;
+  }
+
+  $location = current(\Drupal::entityTypeManager()
+    ->getStorage('commerce_stock_location')
+    ->loadByProperties(['type' => 'bigcommerce']));
+
+  $transactions = \Drupal::database()->select('commerce_stock_transaction', 'st')
+    ->fields('st')
+    ->condition('related_oid', $order->id())
+    ->condition('location_id', $location->id())
+    ->execute()->fetchAll();
+
+  foreach ($transactions as $transaction) {
+    $query = \Drupal::database()->delete('commerce_stock_transaction');
+    $query->condition('id', $transaction->id);
+    $query->execute();
+  }
 }

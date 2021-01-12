@@ -155,9 +155,8 @@ class WebhookController extends ControllerBase {
     $inventory_level = $payload['data']['inventory']['value'];
 
     if ($current_stock_level !== $inventory_level) {
-      $latest_txn = $this->stockChecker->getLocationStockTransactionLatest($location->id(), $variation);
       $this->stockUpdater
-        ->setLocationStockLevel($location->id(), $variation, $inventory_level, $latest_txn);
+        ->setLocationStockLevel($location->id(), $variation, $inventory_level, 0);
     }
 
     // Invalidate cache for the variation in case we display the stock value

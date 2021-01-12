@@ -109,13 +109,61 @@ class WebhookSettingsForm extends ConfigFormBase {
       )
     );
 
+    $config = $this->config('bigcommerce_stock.settings');
+
     $form['webhook'] = [
       '#type' => 'details',
       '#title' => $this->t('Register a stock webhook'),
       '#open' => TRUE,
     ];
 
-    $config = $this->config('bigcommerce_stock.settings');
+    $form['reserve'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Reserve stock'),
+      '#open' => TRUE,
+    ];
+
+    $form['reserve']['reserve_stock'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Reserve stock on add to cart'),
+      '#default_value' => $config->get('reserve_stock'),
+    ];
+
+    $form['reserve']['reserve_expiration'] = [
+      '#type' => 'container',
+      '#attributes' => [
+        'class' => ['interval'],
+      ],
+      '#states' => [
+        'visible' => [
+          ':input[name="reserve_stock"]' => ['checked' => TRUE],
+        ],
+      ],
+      '#open' => TRUE,
+    ];
+
+    $reserve_number = $config->get('reserve_number');
+    $form['reserve']['reserve_expiration']['reserve_number'] = [
+      '#type' => 'number',
+      '#title' => t('Interval'),
+      '#default_value' => !empty($reserve_number) ? $reserve_number : 30,
+      '#required' => TRUE,
+      '#min' => 1,
+    ];
+
+    $reserve_unit = $config->get('reserve_unit');
+    $form['reserve']['reserve_expiration']['reserve_unit'] = [
+      '#type' => 'select',
+      '#title' => t('Unit'),
+      '#title_display' => 'invisible',
+      '#default_value' => !empty($reserve_unit) ? $reserve_unit : 'day',
+      '#options' => [
+        'hour' => t('Hour'),
+        'day' => t('Day'),
+        'month' => t('Month'),
+      ],
+      '#required' => TRUE,
+    ];
 
     if (!$config->get('username') && !$config->get('password')) {
       $form['webhook']['username'] = [
@@ -177,6 +225,12 @@ class WebhookSettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->configFactory()->getEditable('bigcommerce_stock.settings');
+
+    $config->set('reserve_stock', $form_state->getValue('reserve_stock'));
+    $config->set('reserve_number', $form_state->getValue('reserve_number'));
+    $config->set('reserve_unit', $form_state->getValue('reserve_unit'));
+    $config->save();
+
     $webhookValues = [
       'scope' => 'store/sku/inventory/updated',
       'is_active' => TRUE,

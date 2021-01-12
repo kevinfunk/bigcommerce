@@ -5,6 +5,16 @@ services:
     tags:
       - { name: event_subscriber }
 
+  bigcommerce_stock.variation_stock_reserve:
+    class: Drupal\bigcommerce_stock\EventSubscriber\VariationStockReserveSubscriber
+    arguments: ['@entity_type.manager', '@commerce_stock.local_stock_checker', '@commerce_stock.local_stock_updater', '@config.factory']
+    tags:
+      - { name: event_subscriber }
+
+  bigcommerce_stock.cron:
+    class: Drupal\bigcommerce_stock\Cron
+    arguments: ['@entity_type.manager', '@queue', '@database']
+
   bigcommerce_stock.webhook_service:
     class: Drupal\bigcommerce_stock\API\WebhookService
     arguments: ['@config.factory', '@logger.channel.bigcommerce_stock']

@@ -2,6 +2,7 @@
 
 namespace Drupal\bigcommerce\Controller;
 
+use Drupal\bigcommerce\Event\FinalizeCartEvent;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
@@ -12,8 +13,8 @@ use Drupal\commerce_cart\CartSessionInterface;
 use Drupal\commerce_cart\CartSession;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Access\AccessResult;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
 
 use BigCommerce\Api\v3\ApiClient;
 use BigCommerce\Api\v3\Api\CartApi;
@@ -46,6 +47,13 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
   protected $cartSession;
 
   /**
+   * Event dispatcher.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructs a new CartEventSubscriber object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -54,11 +62,13 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
    *   The cart provider.
    * @param \Drupal\commerce_cart\CartSessionInterface $cartSession
    *   The cart session.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
    */
-  public function __construct(ConfigFactoryInterface $config_factory, CartProviderInterface $cartProvider, CartSessionInterface $cartSession) {
+  public function __construct(ConfigFactoryInterface $config_factory, CartProviderInterface $cartProvider, CartSessionInterface $cartSession, EventDispatcherInterface $eventDispatcher) {
     $this->config = $config_factory->get('bigcommerce.settings');
     $this->cartProvider = $cartProvider;
     $this->cartSession = $cartSession;
+    $this->eventDispatcher = $eventDispatcher;
   }
 
   /**
@@ -68,7 +78,8 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
     return new static(
       $container->get('config.factory'),
       $container->get('commerce_cart.cart_provider'),
-      $container->get('commerce_cart.cart_session')
+      $container->get('commerce_cart.cart_session'),
+      $container->get('event_dispatcher')
     );
   }
 
@@ -135,6 +146,9 @@ class CheckoutController extends ControllerBase implements ContainerInjectionInt
     $this->cartProvider->finalizeCart($order, FALSE);
     $order->getState()->applyTransitionById('place');
     $order->save();
+
+    $event = new FinalizeCartEvent($order);
+    $this->eventDispatcher->dispatch(FinalizeCartEvent::EVENT_NAME, $event);
 
     return new JsonResponse(['success' => TRUE]);
   }
