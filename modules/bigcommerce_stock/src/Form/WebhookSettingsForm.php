@@ -6,16 +6,61 @@ use BigCommerce\Api\v3\ApiClient;
 use BigCommerce\Api\v3\Api\CatalogApi;
 use BigCommerce\Api\v3\ApiException;
 use Drupal\bigcommerce\ClientFactory;
+use Drupal\bigcommerce_stock\API\WebhookServiceInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
- * Class WebhookSettingsForm.
+ * Configure webhook settings.
  *
  * @package Drupal\bigcommerce_stock\Form
  */
 class WebhookSettingsForm extends ConfigFormBase {
+
+  /**
+   * The webhook service.
+   *
+   * @var \Drupal\bigcommerce_stock\API\WebhookServiceInterface
+   */
+  protected $webhookService;
+
+  /**
+   * The request stack used to determine current time.
+   *
+   * @var \Symfony\Component\HttpFoundation\RequestStack
+   */
+  protected $requestStack;
+
+  /**
+   * Constructs a WebhookSettingsForm object.
+   *
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   *   The factory for configuration objects.
+   * @param \Drupal\bigcommerce_stock\API\WebhookServiceInterface $webhook_service
+   *   The webhook service.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
+   *   The request stack.
+   */
+  public function __construct(ConfigFactoryInterface $config_factory, WebhookServiceInterface $webhook_service, RequestStack $request_stack) {
+    parent::__construct($config_factory);
+    $this->webhookService = $webhook_service;
+    $this->requestStack = $request_stack;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('config.factory'),
+      $container->get('bigcommerce_stock.webhook_service'),
+      $container->get('request_stack')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -117,21 +162,10 @@ class WebhookSettingsForm extends ConfigFormBase {
   }
 
   /**
-   * Returns the webhook controller destination.
-   *
-   * @return string
-   *   The webhook controller destination.
-   */
-  protected function getDestination() {
-    return Url::fromRoute('bigcommerce_stock.webhook_listener')->setAbsolute()->toString();
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    $destination = $this->getDestination();
-    if (substr($destination, 0, 5) === "https") {
+    if ($this->requestStack->getCurrentRequest()->isSecure()) {
       return;
     }
 
@@ -142,82 +176,27 @@ class WebhookSettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $bigcommerce_config = $this->config('bigcommerce.settings');
-    $apiSettings = $bigcommerce_config->get('api');
-
-    // We need the second version of the api.
-    $apiSettings['path'] = substr($apiSettings['path'], 0, -2) . "2/";
-    $apiClient = new ApiClient(ClientFactory::createApiConfiguration($apiSettings));
-
-    $destination = $this->getDestination();
-
     $config = $this->configFactory()->getEditable('bigcommerce_stock.settings');
-    $httpBody = [
+    $webhookValues = [
       'scope' => 'store/sku/inventory/updated',
-      'destination' => $destination,
       'is_active' => TRUE,
-      'headers' => ['username' => $form_state->getValue('username'), 'password' => $form_state->getValue('password')],
+      'headers' => [
+        'username' => $form_state->getValue('username', $config->get('username')),
+        'password' => $form_state->getValue('password', $config->get('password')),
+      ],
     ];
 
-    $_header_accept = $apiClient->selectHeaderAccept(['application/json']);
-    if (!is_null($_header_accept)) {
-      $headerParams['Accept'] = $_header_accept;
-    }
-
-    $headerParams['Content-Type'] = $apiClient->selectHeaderContentType(['application/json']);
-
     try {
-      if (!$config->get('id')) {
-        $apiClient->callApi(
-          '/hooks',
-          'POST',
-          [],
-          $httpBody,
-          $headerParams
-        );
+      $webhook = $this->webhookService->createOrUpdate($webhookValues);
 
-        list($response, $statusCode, $httpHeader) = $apiClient->callApi('/hooks', 'GET', [], [], []);
-        $webhook = current($response);
-
-        $config->set('username', $form_state->getValue('username'))
-          ->set('password', $form_state->getValue('password'))
-          ->set('id', $webhook->id)
-          ->set('destination', $webhook->destination)
-          ->save();
-      }
+      $config->set('username', $webhook->headers->username)
+        ->set('password', $webhook->headers->password)
+        ->set('id', $webhook->id)
+        ->set('destination', $webhook->destination)
+        ->save();
     }
-    catch (ApiException $e) {
-      $response_body = $e->getResponseBody();
-      if ($response_body->status === 422 && $response_body->title === 'This hook already exists.') {
-        list($response, $statusCode, $httpHeader) = $apiClient->callApi('/hooks', 'GET', [], [], []);
-        $webhook = current($response);
-
-        // Making sure we have the right webhook already configured.
-        if ($webhook->headers->username === $form_state->getValue('username') && $webhook->headers->password === $form_state->getValue('password')) {
-          $config->set('username', $form_state->getValue('username'))
-            ->set('password', $form_state->getValue('password'))
-            ->set('id', $webhook->id)
-            ->set('destination', $webhook->destination)
-            ->save();
-        }
-
-        return;
-      }
-
-      if ($response_body->status === 422) {
-        $this->messenger()->addError($response_body->title);
-
-        return;
-      }
-
-      $this->messenger()->addError($this->t(
-        'There was an error setting up a webhook via the BigCommerce API ( <a href=":status_url">System Status</a> | <a href=":contact_url">Contact Support</a> ). Connection failed due to: %message',
-        [
-          ':status_url' => 'http://status.bigcommerce.com/',
-          ':contact_url' => 'https://support.bigcommerce.com/contact',
-          '%message' => $e->getMessage(),
-        ]
-      ));
+    catch (\Exception $e) {
+      $this->messenger()->addError($e->getMessage());
     }
   }
 
@@ -230,22 +209,11 @@ class WebhookSettingsForm extends ConfigFormBase {
    *   The form state.
    */
   public function deleteWebhook(array &$form, FormStateInterface $form_state) {
-    $bigcommerce_config = $this->config('bigcommerce.settings');
-    $apiSettings = $bigcommerce_config->get('api');
-
-    // We need the second version of the api.
-    $apiSettings['path'] = substr($apiSettings['path'], 0, -2) . "2/";
-    $apiClient = new ApiClient(ClientFactory::createApiConfiguration($apiSettings));
     $config = $this->configFactory()->getEditable('bigcommerce_stock.settings');
-
     try {
-      $apiClient->callApi(
-        '/hooks/' . $config->get('id'),
-        'DELETE',
-        [],
-        [],
-        []
-      );
+      if ($webhook_id = $config->get('id')) {
+        $this->webhookService->delete($webhook_id);
+      }
 
       $config->clear('username');
       $config->clear('password');
@@ -254,7 +222,18 @@ class WebhookSettingsForm extends ConfigFormBase {
       $config->save();
     }
     catch (ApiException $e) {
-      $this->messenger()->addError($this->t('Failed to delete webhook'));
+      $response_body = $e->getResponseBody();
+      if ($response_body->status === 404) {
+        $config->clear('username');
+        $config->clear('password');
+        $config->clear('id');
+        $config->clear('destination');
+        $config->save();
+
+        return;
+      }
+
+      $this->messenger()->addError($response_body->title);
     }
   }
 

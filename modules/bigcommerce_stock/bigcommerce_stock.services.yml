@@ -4,3 +4,11 @@ services:
     arguments: ['@entity_type.manager', '@commerce_stock.local_stock_checker', '@commerce_stock.local_stock_updater', '@config.factory']
     tags:
       - { name: event_subscriber }
+
+  bigcommerce_stock.webhook_service:
+    class: Drupal\bigcommerce_stock\API\WebhookService
+    arguments: ['@config.factory', '@logger.channel.bigcommerce_stock']
+
+  logger.channel.bigcommerce_stock:
+    parent: logger.channel_base
+    arguments: ['bigcommerce_stock']
