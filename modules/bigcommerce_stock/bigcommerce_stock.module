@@ -1,32 +1,6 @@
 <?php
 
 use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_stock_local\Entity\StockLocation;
-use Drupal\Core\Url;
-
-/**
- * Implements hook_install().
- */
-function bigcommerce_stock_install($is_syncing) {
-  \Drupal::configFactory()
-    ->getEditable('commerce_stock.service_manager')
-    ->set('commerce_product_variation_digital_service_id', 'local_stock')
-    ->save();
-  \Drupal::configFactory()
-    ->getEditable('commerce_stock.service_manager')
-    ->set('commerce_product_variation_physical_service_id', 'local_stock')
-    ->save();
-
-  StockLocation::create([
-    'type' => 'bigcommerce',
-    'name' => 'default',
-    'status' => TRUE,
-  ])->save();
-
-  \Drupal::messenger()->addWarning(t('Please make sure to run the bigcommerce_product_variation migration again from the <a href=":link">BigCommerce Product synchronization</a> page to get the initial stock values.', [
-    ':link' => Url::fromRoute('bigcommerce.product_sync')->toString(),
-  ]));
-}
 
 /**
  * Implements hook_cron().
