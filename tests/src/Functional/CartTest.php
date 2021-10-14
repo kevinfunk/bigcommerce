@@ -38,10 +38,10 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
   protected $defaultTheme = 'stark';
 
   /**
-   * {@inheritdoc}
+   * Test cart.
    */
-  protected function setUp() {
-    parent::setUp();
+  public function testCart() {
+    // Set up.
     $this->cart = $this->container->get('commerce_cart.cart_provider')->createCart('default');
 
     // Configure BigCommerce to use the stub.
@@ -56,12 +56,8 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
     $config->save();
     $this->executeMigrations();
     $this->assertMigrations();
-  }
 
-  /**
-   * Test cart.
-   */
-  public function testCart() {
+    // Start testing.
     $this->drupalGet('product/1/variations');
     $products = \Drupal::entityTypeManager()
       ->getStorage('commerce_product')
