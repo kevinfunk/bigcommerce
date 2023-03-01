@@ -16,7 +16,7 @@ class ProductSyncUiTest extends CommerceBrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'bigcommerce',
     'bigcommerce_test',
   ];

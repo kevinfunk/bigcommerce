@@ -33,7 +33,7 @@ class ProductCategorySyncTest extends BrowserTestBase implements MigrateMessageI
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     // Configure API to use the stub.
     $this->config('bigcommerce.settings')

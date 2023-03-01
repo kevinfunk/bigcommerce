@@ -4,6 +4,7 @@ namespace Drupal\bigcommerce\Plugin\migrate\id_map;
 
 use Drupal\migrate\Plugin\migrate\id_map\Sql;
 use Drupal\migrate\Plugin\MigrationInterface;
+use Drupal\migrate\Plugin\MigrationPluginManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -30,8 +31,8 @@ class Sync extends Sql {
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration, EventDispatcherInterface $event_dispatcher) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $migration, $event_dispatcher);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, MigrationInterface $migration, EventDispatcherInterface $event_dispatcher, MigrationPluginManagerInterface $migration_plugin_manager = NULL) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $migration, $event_dispatcher, $migration_plugin_manager);
 
     // Remove bigcommerce_ from the migration ID so it is not duplicated.
     $machine_name = str_replace([':', 'bigcommerce_'], ['__', ''], $this->migration->id());

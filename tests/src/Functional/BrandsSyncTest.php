@@ -33,7 +33,7 @@ class BrandsSyncTest extends BrowserTestBase implements MigrateMessageInterface 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     // Configure API to use the stub.
     $this->config('bigcommerce.settings')

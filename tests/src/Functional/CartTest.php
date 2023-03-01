@@ -27,7 +27,7 @@ class CartTest extends CommerceBrowserTestBase implements MigrateMessageInterfac
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'bigcommerce',
     'bigcommerce_test',
   ];
