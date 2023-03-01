@@ -13,4 +13,5 @@ dependencies:
   - drupal:image
   - entity:entity
   - migrate_file:migrate_file
+  - migrate_plus:migrate_plus
   - migrate_tools:migrate_tools
