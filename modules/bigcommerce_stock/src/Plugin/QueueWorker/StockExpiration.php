@@ -2,6 +2,8 @@
 
 namespace Drupal\bigcommerce_stock\Plugin\QueueWorker;
 
+use Drupal\Core\Database\Connection;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Queue\QueueWorkerBase;
@@ -17,6 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class StockExpiration extends QueueWorkerBase implements ContainerFactoryPluginInterface {
+  use DependencySerializationTrait;
 
   /**
    * The entity type manager.
@@ -24,6 +27,13 @@ class StockExpiration extends QueueWorkerBase implements ContainerFactoryPluginI
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
+
+  /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $database;
 
   /**
    * Constructs a new StockExpiration object.
@@ -36,11 +46,14 @@ class StockExpiration extends QueueWorkerBase implements ContainerFactoryPluginI
    *   The plugin implementation definition.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManagerInterface $entity_type_manager, Connection $database) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
 
     $this->entityTypeManager = $entity_type_manager;
+    $this->database = $database;
   }
 
   /**
@@ -51,7 +64,8 @@ class StockExpiration extends QueueWorkerBase implements ContainerFactoryPluginI
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('entity_type.manager')
+      $container->get('entity_type.manager'),
+      $container->get('database')
     );
   }
 
@@ -76,26 +90,15 @@ class StockExpiration extends QueueWorkerBase implements ContainerFactoryPluginI
       return;
     }
 
-    $query = \Drupal::database()->delete('commerce_stock_transaction');
-    $query->condition('id', $transaction_id);
-    $query->execute();
-
+    // Delete all the transactions for this order with the bigcommerce location.
     // If the order was created for bigcommerce we have a matching opposite
     // transaction that we need to clear as well so we don't mess up the stock
     // value.
-    $sibling_transaction = \Drupal::database()->select('commerce_stock_transaction', 'st')
-      ->fields('st')
+    $this->database->delete('commerce_stock_transaction')
       ->condition('related_oid', $transaction->related_oid)
-      ->condition('id', $transaction_id, '!=')
       ->condition('entity_id', $transaction->entity_id)
       ->condition('location_id', $location->id())
-      ->execute()->fetch();
-
-    if ($sibling_transaction) {
-      $query = \Drupal::database()->delete('commerce_stock_transaction');
-      $query->condition('id', $sibling_transaction['id']);
-      $query->execute();
-    }
+      ->execute();
   }
 
 }

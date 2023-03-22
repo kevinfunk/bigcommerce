@@ -158,6 +158,7 @@ class WebhookSettingsForm extends ConfigFormBase {
       '#title_display' => 'invisible',
       '#default_value' => !empty($reserve_unit) ? $reserve_unit : 'day',
       '#options' => [
+        'minute' => t('Minute'),
         'hour' => t('Hour'),
         'day' => t('Day'),
         'month' => t('Month'),

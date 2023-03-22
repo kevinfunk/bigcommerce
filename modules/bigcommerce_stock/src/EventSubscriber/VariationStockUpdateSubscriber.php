@@ -14,8 +14,9 @@ use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\migrate\Event\MigrateEvents;
 use Drupal\migrate\Plugin\MigrationInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 use Drupal\migrate_plus\Event\MigrateEvents as MigratePlugMigrateEvents;
+use Drupal\migrate\Event\MigratePostRowSaveEvent;
 
 /**
  * Class VariationStockUpdateSubscriber.
@@ -92,13 +93,13 @@ class VariationStockUpdateSubscriber implements EventSubscriberInterface {
   /**
    * This method is called when the migration events are dispatched.
    *
-   * @param \Symfony\Component\EventDispatcher\Event $event
+   * @param \Symfony\Contracts\EventDispatcher\Event|\Drupal\migrate\Event\MigratePostRowSaveEvent $event
    *   The dispatched event.
    *
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function updateVariationStock(Event $event) {
+  public function updateVariationStock(Event|MigratePostRowSaveEvent $event) {
     $migration = $event->getMigration();
     if ($migration->id() !== 'bigcommerce_product_variation') {
       return;
