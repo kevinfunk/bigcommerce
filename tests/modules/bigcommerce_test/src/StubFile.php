@@ -37,7 +37,7 @@ class StubFile {
    */
   public function createUrl($filename) {
     $uri = $this->moduleHandler->getModule('bigcommerce_test')->getPath() . '/stubs/files/' . $filename;
-    return file_create_url($uri);
+    return \Drupal::service('file_url_generator')->generateAbsoluteString($uri);
   }
 
   /**

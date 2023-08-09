@@ -3,7 +3,7 @@
 namespace Drupal\bigcommerce\Event;
 
 use Drupal\commerce_order\Entity\OrderInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * Event that is fired the cart it finalized.
