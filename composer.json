@@ -13,7 +13,7 @@
   "require": {
     "moderntribe/bigcommerce-api-php-v3": "^1.10",
     "drupal/core": "^9.4 | ^10",
-    "drupal/color_field": "^2.0",
+    "drupal/color_field": "^2.0 | ^3.0",
     "drupal/commerce": "^2.16",
     "drupal/entity": "^1.0",
     "drupal/migrate_file": "^2.0",
